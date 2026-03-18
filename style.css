@@ -1,0 +1,47 @@
+:root {
+  --bg: #f7f4ef;
+  --text: #1f1c18;
+  --accent: #cc5f2f;
+  --surface: #fffaf2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: Georgia, "Times New Roman", serif;
+  background: radial-gradient(circle at top right, #ffe8d1, var(--bg));
+  color: var(--text);
+}
+
+.container {
+  width: min(92vw, 640px);
+  padding: 2rem;
+  border: 1px solid #ead7c1;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+  margin-top: 0;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(0.95);
+}
