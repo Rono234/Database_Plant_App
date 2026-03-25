@@ -1,13 +1,70 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 include('db_connection.php');
 
+$conditions = [];
+
+// Basic search functionality for plants using the name
+if(isset($_GET['search']) && !empty($_GET['search'])) {
+    $search = mysqli_real_escape_string($con, $_GET['search']);
+    $conditions[] = "p.plant_name LIKE '%$search%'";
+}
+
+// Filter by sun level
+if(isset($_GET['sun_level']) && !empty($_GET['sun_level'])){
+    $sun_level_security = 
+        array_map(function($s) use ($con){
+            return mysqli_real_escape_string($con, $s);
+        }, $_GET['sun_level']);
+    $sun_level_array = implode("','", $sun_level_security);
+    $conditions[] = "p.sun_level IN ('$sun_level_array') ";
+}
+
+// Filter by pests
+if(isset($_GET['pests']) && !empty($_GET['pests'])){
+    $pests_security = 
+        array_map(function($p) use ($con){
+            return mysqli_real_escape_string($con, $p);
+        }, $_GET['pests']);
+    $pests_array = implode("','", $pests_security);
+    $conditions[] = "pe.pest_name IN ('$pests_array') ";
+}
+
+// Filter by difficulty level of planting
+if(isset($_GET['difficulty']) && !empty($_GET['difficulty'])){
+    $difficulty_security = 
+        array_map(function($d) use ($con){
+            return mysqli_real_escape_string($con, $d);
+        }, $_GET['difficulty']);
+    $difficulty_array = implode("','", $difficulty_security);
+    $conditions[] = "p.difficulty IN ('$difficulty_array') ";
+}
+
+// Filter by plant type (perennial vs annual)
+if(isset($_GET['plant_type']) && !empty($_GET['plant_type'])){
+    $plant_type_security = 
+        array_map(function($pt) use ($con){
+            return mysqli_real_escape_string($con, $pt);
+        }, $_GET['plant_type']);
+    $pt_array = implode("','", $plant_type_security);
+    $conditions[] = "p.plant_type IN ('$pt_array') ";
+}
+
+// Putting together the queries
 $q = "SELECT p.plant_name, p.plant_type, p.plant_desc, p.sun_level, p.start_plant, p.end_plant, p.difficulty, p.plant_img,
-             GROUP_CONCAT(DISTINCT pe.pest_name ORDER BY pe.pest_name SEPARATOR ', ') AS pests
+        GROUP_CONCAT(DISTINCT pe.pest_name ORDER BY pe.pest_name SEPARATOR ', ') AS pests
       FROM plants AS p
       LEFT JOIN plants_pests AS pp ON p.plant_id = pp.plant_id
-      LEFT JOIN pests AS pe ON pp.pest_id = pe.pest_id
-      GROUP BY p.plant_id, p.plant_name, p.plant_type, p.plant_desc, p.sun_level, p.start_plant, p.end_plant, p.difficulty, p.plant_img
-      ORDER BY p.plant_name";
+      LEFT JOIN pests AS pe ON pp.pest_id = pe.pest_id";
+
+if (!empty($conditions)) {
+    $q .= " WHERE " . implode(" AND ", $conditions);
+}
+
+$q .= " GROUP BY p.plant_id, p.plant_name, p.plant_type, p.plant_desc, p.sun_level, p.start_plant, p.end_plant, p.difficulty, p.plant_img
+        ORDER BY p.plant_name";
 
 $result = mysqli_query($con, $q) or die("Query failed: " . mysqli_error($con));
 
@@ -94,28 +151,51 @@ function resolvePlantImage($fileName)
         body {
             font-family: 'Quicksand', sans-serif;
             background-color: #F6E5E7;
-            background-image: radial-gradient(#e8f5e9 1px, transparent 1px),
+            background-image: 
+                radial-gradient(#e8f5e9 1px, transparent 1px),
                 radial-gradient(#fce4ec 1px, transparent 1px);
             background-size: 40px 40px;
             background-position: 0 0, 20px 20px;
             display: flex;
+            min-height: 100vh;
+            align-items: stretch;
         }
 
         /* SIDEBAR FILTER */
         .sidebar {
-            width: 220px;
-            background: #A0AB89;
+            width: 210px;
+            background: #255626;
             border-right: 2px solid #f3d1dc;
             padding: 20px;
             height: 100vh;
-            position: sticky;
+            position: fixed;
             color: #fff;
             top: 0;
+            left: 0;
+        }
+
+        .filter-section {
+            position: sticky;
+            top: 20px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .filter-title{
+            display: block; 
+            margin-bottom: 8px;
+            font-size: 16px;
+            /* text-decoration: underline; 
+            text-underline-offset: 3px;" */
         }
 
         .sidebar h3 {
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             color: #FFF;
+            font-size: 22px;
+            text-align: center;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
         .filter-group {
@@ -133,11 +213,13 @@ function resolvePlantImage($fileName)
         .main {
             flex: 1;
             padding: 20px;
+            margin-left: 220px;
+            margin-right: 10px;
         }
 
         /* HEADER */
         .header {
-            background: #e69b97;
+            background: #116838;
             padding: 20px;
             border-radius: 20px;
             margin-bottom: 20px;
@@ -172,12 +254,28 @@ function resolvePlantImage($fileName)
             font-weight: 600;
         }
 
+        .search-container {
+            position: relative;
+            margin-top: 10px;
+        }
+
         .search {
-            width: 100%;
-            padding: 12px 18px;
+            width: 95%;
+            padding: 12px 50px 12px 18px; /* Right padding for button */
             border-radius: 30px;
             border: none;
             outline: none;
+        }
+
+        .search-button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
         }
 
         /* GRID */
@@ -275,53 +373,161 @@ function resolvePlantImage($fileName)
 </head>
 
 <body>
+    <form id="filter-form" action="" method="GET"> </form>
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <h3>Filters:</h3>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h3>🌿 Filters</h3>
+            <div class="filter-section">
+                <div class="filter-group">
+                    <strong class="filter-title">Light:</strong>
+                    <label><input type="checkbox" name="sun_level[]" form="filter-form" value="Full Sun"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['sun_level']) && in_array('Full Sun', $_GET['sun_level'])) echo 'checked'; ?>
+                        > Full Sun
+                    </label>
 
-        <div class="filter-group">
-            <strong>Light</strong>
-            <label><input type="checkbox"> Full Sun</label>
-            <label><input type="checkbox"> Partial Sun</label>
-            <label><input type="checkbox"> Shade</label>
-        </div>
+                    <label><input type="checkbox" name="sun_level[]" form="filter-form" value="Partial Shade"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['sun_level']) && in_array('Partial Shade', $_GET['sun_level'])) echo 'checked'; ?>
+                        > Partial Shade
+                    </label>
 
-        <div class="filter-group">
-            <strong>Pest</strong>
-            <label><input type="checkbox"> ladybugs</label>
-            <label><input type="checkbox"> beetles</label>
-        </div>
+                    <!-- <label><input type="checkbox" name="sun_level[]" form="filter-form" value="Full Shade"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['sun_level']) && in_array('Full Shade', $_GET['sun_level'])) echo 'checked'; ?>
+                        > Full Shade
+                    </label> -->
+                </div>
 
-        <div class="filter-group">
-            <strong>Difficulty</strong>
-            <label><input type="checkbox"> Easy</label>
-            <label><input type="checkbox"> Medium</label>
-            <label><input type="checkbox"> Hard</label>
-        </div>
-    </div>
+                <div class="filter-group">
+                    <strong class="filter-title">Pest:</strong>
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Ladybug"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Ladybug', $_GET['pests'])) echo 'checked'; ?>
+                        > Ladybug
+                    </label>
 
-    <!-- MAIN -->
-    <div class="main">
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Bees"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Bees', $_GET['pests'])) echo 'checked'; ?>
+                        > Bees
+                    </label>
 
-        <!-- HEADER -->
-        <div class="header">
-            <div class="header-top">
-                <div class="logo">🌸 blossom</div>
-                <div class="tabs">
-                    <a href="index.php" class="active">Plants</a>
-                    <a href="community.php">Community</a>
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Caterpillar"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Caterpillar', $_GET['pests'])) echo 'checked'; ?>
+                        > Caterpillar
+                    </label>
+
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Aphids"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Aphids', $_GET['pests'])) echo 'checked'; ?>
+                        > Aphids
+                    </label>
+
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Japanese Beetles"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Japanese Beetles', $_GET['pests'])) echo 'checked'; ?>
+                        > Japanese Beetles
+                    </label>
+
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Spider Mites"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Spider Mites', $_GET['pests'])) echo 'checked'; ?>
+                        > Spider Mites
+                    </label>
+
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Lacewings"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Lacewings', $_GET['pests'])) echo 'checked'; ?>
+                        > Lacewings
+                    </label>
+
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Slugs"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Slugs', $_GET['pests'])) echo 'checked'; ?>
+                        > Slugs
+                    </label>
+
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Butterflies"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Butterflies', $_GET['pests'])) echo 'checked'; ?>
+                        > Butterflies
+                    </label>
+
+                    <label><input type="checkbox" name="pests[]" form="filter-form" value="Hoverflies"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['pests']) && in_array('Hoverflies', $_GET['pests'])) echo 'checked'; ?>
+                        > Hoverflies
+                    </label>
+                </div>
+
+                <div class="filter-group">
+                    <strong class="filter-title">Difficulty:</strong>
+                    <label><input type="checkbox" name="difficulty[]" form="filter-form" value="Easy"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['difficulty']) && in_array('Easy', $_GET['difficulty'])) echo 'checked'; ?>
+                        > Easy
+                    </label>
+
+                    <label><input type="checkbox" name="difficulty[]" form="filter-form" value="Medium"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['difficulty']) && in_array('Medium', $_GET['difficulty'])) echo 'checked'; ?>
+                        > Medium
+                    </label>
+
+                    <label><input type="checkbox" name="difficulty[]" form="filter-form" value="Hard"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['difficulty']) && in_array('Hard', $_GET['difficulty'])) echo 'checked'; ?>
+                        > Hard
+                    </label>
+                </div>
+
+                <div class="filter-group">
+                    <strong class="filter-title">Type:</strong>
+                    <label><input type="checkbox" name="plant_type[]" form="filter-form" value="Perennial"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['plant_type']) && in_array('Perennial', $_GET['plant_type'])) echo 'checked'; ?>
+                        > Perennial
+                    </label>
+
+                    <label><input type="checkbox" name="plant_type[]" form="filter-form" value="Annual"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['plant_type']) && in_array('Annual', $_GET['plant_type'])) echo 'checked'; ?>
+                        > Annual
+                    </label>
                 </div>
             </div>
-
-            <input class="search" placeholder="search your plant friend...">
         </div>
+
+        <!-- MAIN -->
+        <div class="main">
+
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-top">
+                    <div class="logo">🌸 blossom</div>
+                    <div class="tabs">
+                        <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>
+                        <a href="community.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'community.php' ? 'active' : ''; ?>">Community</a>
+                    </div>
+                </div>
+
+                <!-- SEARCH -->
+                <div>
+                    <div class="search-container">
+                        <input class="search" type="text" name="search" form="filter-form" placeholder="Type here to search for plants..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <input class="search-button" name ="search-button" form="filter-form" type="image" src="images/search.png" alt="Search" width="30" height="30" style="vertical-align: middle; margin-left: 10px; background: transparent; border: none;">
+                    </div>
+                </div>
+            </div>
 
         <!-- GRID -->
         <div class="grid">
             <?php if (mysqli_num_rows($result) > 0) { ?>
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <div class="card">
+                    <div class="card" style="margin-bottom: 10px;">
                         <div class="tag"><?php echo escape(strtolower(trim($row['difficulty']))); ?></div>
                         <img src="<?php echo escape(resolvePlantImage($row['plant_img'])); ?>" alt="<?php echo escape($row['plant_name']); ?>">
                         <div class="card-content">
@@ -339,11 +545,7 @@ function resolvePlantImage($fileName)
                     No plants were found in the database.
                 </div>
             <?php } ?>
-
         </div>
-
     </div>
-
 </body>
-
 </html>

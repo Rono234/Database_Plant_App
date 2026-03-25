@@ -1,13 +1,27 @@
 <?php
 include('db_connection.php');
 
+$conditions = [];
+
+// Basic search functionality for posts and users using the name
+if(isset($_GET['search']) && !empty($_GET['search'])) {
+    $search = mysqli_real_escape_string($con, $_GET['search']);
+    $conditions[] = "pt.title LIKE '%$search%' OR u.user_name LIKE '%$search%'";
+}
+
+// Putting together the queries
 $q = "SELECT pt.title, pt.body, pt.post_date, pt.post_img, u.user_name 
     FROM posts AS pt 
-    LEFT JOIN users AS u ON pt.user_id = u.user_id 
-    ORDER BY pt.post_date DESC;";
+    LEFT JOIN users AS u ON pt.user_id = u.user_id";
+
+if (!empty($conditions)) {
+    $q .= " WHERE " . implode(" AND ", $conditions);
+}
+
+$q .= " GROUP BY pt.post_id, pt.title, pt.body, pt.post_date, pt.post_img, u.user_name
+        ORDER BY pt.post_date DESC";
 
 $result = mysqli_query($con, $q) or die("Query failed: " . mysqli_error($con));
-
 
 function escape($value)
 {
@@ -70,23 +84,45 @@ function resolvePostImage($fileName)
             background-size: 40px 40px;
             background-position: 0 0, 20px 20px;
             display: flex;
+            min-height: 100vh;
+            align-items: stretch;
         }
 
         /* SIDEBAR FILTER */
         .sidebar {
-            width: 220px;
-            background: #A0AB89;
+            width: 200px;
+            background: #255626;
             border-right: 2px solid #f3d1dc;
             padding: 20px;
             height: 100vh;
-            position: sticky;
+            position: fixed;
             color: #fff;
             top: 0;
+            left: 0;
+        }
+
+        .filter-section {
+            position: sticky;
+            top: 20px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .filter-title{
+            display: block; 
+            margin-bottom: 10px;
+            font-size: 16px;
+            /* text-decoration: underline; 
+            text-underline-offset: 3px;" */
         }
 
         .sidebar h3 {
             margin-bottom: 15px;
             color: #FFF;
+            font-size: 22px;
+            text-align: center;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
         .filter-group {
@@ -104,11 +140,13 @@ function resolvePostImage($fileName)
         .main {
             flex: 1;
             padding: 20px;
+            margin-left: 210px;
+            margin-right: 10px;
         }
 
         /* HEADER */
         .header {
-            background: #e69b97;
+            background: #116838;
             padding: 20px;
             border-radius: 20px;
             margin-bottom: 20px;
@@ -132,7 +170,7 @@ function resolvePostImage($fileName)
             text-decoration: none;
             background: rgba(255, 255, 255, 0.6);
             padding: 8px 14px;
-            border-radius: 20px;
+            border-radius: 20px;s
             margin-left: 10px;
             cursor: pointer;
             color: #000;
@@ -143,12 +181,28 @@ function resolvePostImage($fileName)
             font-weight: 600;
         }
 
+        .search-container {
+            position: relative;
+            margin-top: 10px;
+        }
+
         .search {
-            width: 100%;
-            padding: 12px 18px;
+            width: 95%;
+            padding: 12px 50px 12px 18px; /* Right padding for button */
             border-radius: 30px;
             border: none;
             outline: none;
+        }
+
+        .search-button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
         }
 
         /* GRID */
@@ -247,28 +301,38 @@ function resolvePostImage($fileName)
 
 <body>
 
+    <form id="filter-form"></form>
+
     <!-- SIDEBAR -->
     <div class="sidebar">
-        <h3>🌿 Filters</h3>
+        <h3>Filters:</h3>
 
-        <div class="filter-group">
-            <strong>Light</strong>
-            <label><input type="checkbox"> Full Sun</label>
-            <label><input type="checkbox"> Partial Sun</label>
-            <label><input type="checkbox"> Shade</label>
-        </div>
+        <div class="filter-section">
+            <div class="filter-group">
+                <strong class="filter-title">Light:</strong>
+                <label><input type="checkbox"> Full Sun</label>
+                <label><input type="checkbox"> Partial Sun</label>
+                <label><input type="checkbox"> Shade</label>
+            </div>
 
-        <div class="filter-group">
-            <strong>Pest</strong>
-            <label><input type="checkbox"> ladybugs</label>
-            <label><input type="checkbox"> beetles</label>
-        </div>
+            <div class="filter-group">
+                <strong class="filter-title">Pest:</strong>
+                <label><input type="checkbox"> Ladybugs</label>
+                <label><input type="checkbox"> Beetles</label>
+            </div>
 
-        <div class="filter-group">
-            <strong>Difficulty</strong>
-            <label><input type="checkbox"> Easy</label>
-            <label><input type="checkbox"> Medium</label>
-            <label><input type="checkbox"> Hard</label>
+            <div class="filter-group">
+                <strong class="filter-title">Difficulty:</strong>
+                <label><input type="checkbox"> Easy</label>
+                <label><input type="checkbox"> Medium</label>
+                <label><input type="checkbox"> Hard</label>
+            </div>
+
+            <div class="filter-group">
+                <strong class="filter-title">Type:</strong>
+                <label><input type="checkbox"> Perennial</label>
+                <label><input type="checkbox"> Annual</label>
+            </div>
         </div>
     </div>
 
@@ -280,20 +344,27 @@ function resolvePostImage($fileName)
             <div class="header-top">
                 <div class="logo">🌸 blossom</div>
                 <div class="tabs">
-                    <a href="index.php">Plants</a>
-                    <a href="community.php" class="active">Community</a>
+                    <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>
+                    <a href="community.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'community.php' ? 'active' : ''; ?>">Community</a>
                 </div>
             </div>
 
-            <input class="search" placeholder="search your plant friend...">
+            <!-- SEARCH -->
+            <div>
+                <form action="" method="GET">
+                    <div class="search-container">
+                        <input class="search" type="text" name="search" form="filter-form" placeholder="Type here to search for a post or user..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <input class="search-button" name ="search-button" form="filter-form" type="image" src="images/search.png" alt="Search" width="30" height="30" style="vertical-align: middle; margin-left: 10px; background: transparent; border: none;">
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- GRID -->
         <div class="grid">
             <?php if (mysqli_num_rows($result) > 0) { ?>
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <div class="card">
-            
+                    <div class="card" style="margin-bottom: 10px;">
                         <img src="<?php echo escape(resolvePostImage($row['post_img'])); ?>"
                             alt="<?php echo escape($row['title']); ?>">
                         <div class="card-content">
