@@ -41,33 +41,33 @@ function escape($value)
 
 function resolvePlantImage($fileName)
 {
-    $imageDirectory = __DIR__ . '/images/';
-    $relativeDirectory = 'images/';
-    $baseName = pathinfo((string) $fileName, PATHINFO_FILENAME);
-    $extension = strtolower(pathinfo((string) $fileName, PATHINFO_EXTENSION));
-    $candidates = array($fileName);
+    $name = trim((string) $fileName);
+    if ($name === '') {
+        return 'https://placehold.co/600x400/F6E5E7/828C6A?text=Plant';
+    }
 
-    if ($baseName !== '') {
+    $baseName = pathinfo($name, PATHINFO_FILENAME);
+    $hasExtension = pathinfo($name, PATHINFO_EXTENSION) !== '';
+
+    $candidates = array($name);
+    if (!$hasExtension && $baseName !== '') {
         $candidates[] = $baseName . '.jpg';
         $candidates[] = $baseName . '.jpeg';
         $candidates[] = $baseName . '.png';
     }
 
-    if ($baseName === 'lettuce') {
-        $candidates[] = 'letttuce.jpg';
+    $specialNames = array(
+        'lettuce' => 'letttuce.jpg',
+        'oregano' => 'oregano.jpeg'
+    );
+    if (isset($specialNames[strtolower($baseName)])) {
+        $candidates[] = $specialNames[strtolower($baseName)];
     }
 
-    $candidates = array_unique(array_filter($candidates));
-
-    foreach ($candidates as $candidate) {
-        if (file_exists($imageDirectory . $candidate)) {
-            return $relativeDirectory . $candidate;
-        }
-    }
-
-    foreach (glob($imageDirectory . '*') as $imagePath) {
-        if (strtolower(pathinfo($imagePath, PATHINFO_FILENAME)) === strtolower($baseName)) {
-            return $relativeDirectory . basename($imagePath);
+    foreach (array_unique($candidates) as $candidate) {
+        $safeCandidate = basename($candidate);
+        if (file_exists(__DIR__ . '/images/' . $safeCandidate)) {
+            return 'images/' . $safeCandidate;
         }
     }
 
@@ -157,16 +157,17 @@ function resolvePlantImage($fileName)
             color: #fff;
         }
 
-        .tabs button {
-            border: none;
+        .tabs a {
+            text-decoration: none;
             background: rgba(255, 255, 255, 0.6);
             padding: 8px 14px;
             border-radius: 20px;
             margin-left: 10px;
             cursor: pointer;
+            color: #000;
         }
 
-        .tabs button.active {
+        .tabs a.active {
             background: white;
             font-weight: 600;
         }
@@ -308,8 +309,8 @@ function resolvePlantImage($fileName)
             <div class="header-top">
                 <div class="logo">🌸 blossom</div>
                 <div class="tabs">
-                    <button class="active">Plants</button>
-                    <button>Community</button>
+                    <a href="index.php" class="active">Plants</a>
+                    <a href="community.php">Community</a>
                 </div>
             </div>
 

@@ -1,4 +1,51 @@
-<!DOCTYPE html>
+<?php
+include('db_connection.php');
+
+$q = "SELECT pt.title, pt.body, pt.post_date, pt.post_img, u.user_name 
+    FROM posts AS pt 
+    LEFT JOIN users AS u ON pt.user_id = u.user_id 
+    ORDER BY pt.post_date DESC;";
+
+$result = mysqli_query($con, $q) or die("Query failed: " . mysqli_error($con));
+
+
+function escape($value)
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+function resolvePostImage($fileName)
+{
+    $name = trim((string) $fileName);
+    if ($name === '') {
+        return 'https://placehold.co/600x400/F6E5E7/828C6A?text=Post';
+    }
+
+    $baseName = pathinfo($name, PATHINFO_FILENAME);
+    $hasExtension = pathinfo($name, PATHINFO_EXTENSION) !== '';
+
+    $candidates = array($name);
+    if (!$hasExtension && $baseName !== '') {
+        $candidates[] = $baseName . '.jpg';
+        $candidates[] = $baseName . '.jpeg';
+        $candidates[] = $baseName . '.png';
+    }
+
+    $folders = array('postImages/', 'images/');
+    foreach ($folders as $folder) {
+        $absoluteFolder = __DIR__ . '/' . $folder;
+        foreach (array_unique($candidates) as $candidate) {
+            $safeCandidate = basename($candidate);
+            if (file_exists($absoluteFolder . $safeCandidate)) {
+                return $folder . $safeCandidate;
+            }
+        }
+    }
+
+    return 'https://placehold.co/600x400/F6E5E7/828C6A?text=' . rawurlencode($baseName ?: 'Post');
+}
+?>
+
 <html lang="en">
 
 <head>
@@ -81,16 +128,17 @@
             color: #fff;
         }
 
-        .tabs button {
-            border: none;
+        .tabs a {
+            text-decoration: none;
             background: rgba(255, 255, 255, 0.6);
             padding: 8px 14px;
             border-radius: 20px;
             margin-left: 10px;
             cursor: pointer;
+            color: #000;
         }
 
-        .tabs button.active {
+        .tabs a.active {
             background: white;
             font-weight: 600;
         }
@@ -108,6 +156,14 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
+        }
+
+        .empty-state {
+            background: #fff;
+            border-radius: 20px;
+            padding: 24px;
+            color: #5f6750;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
         }
 
         /* CARD */
@@ -138,6 +194,13 @@
             margin-bottom: 5px;
         }
 
+        .card p {
+            font-size: 14px;
+            color: #5a5a5a;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
         .card small {
             color: #777;
             display: block;
@@ -157,6 +220,20 @@
         .info {
             font-size: 13px;
             margin-bottom: 5px;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 2px solid #f3d1dc;
+            }
         }
 
         /* color palette: 
@@ -203,8 +280,8 @@
             <div class="header-top">
                 <div class="logo">🌸 blossom</div>
                 <div class="tabs">
-                    <button class="active">Plants</button>
-                    <button>Community</button>
+                    <a href="index.php">Plants</a>
+                    <a href="community.php" class="active">Community</a>
                 </div>
             </div>
 
@@ -213,41 +290,26 @@
 
         <!-- GRID -->
         <div class="grid">
-
-            <div class="card">
-                <div class="tag">easy</div>
-                <img
-                    src="https://www.southernliving.com/thmb/0pEtYYeGqHPPBZrJ6B1fpMfJVqk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GettyImages-2206518010-92cc04ca76db470d87e6f1f3635519eb.jpg">
-                <div class="card-content">
-                    <h3>Mint</h3>
-                    <small>Perennial</small>
-                    <div class="info">☀️ Partial sun</div>
-                    <div class="info">💧 2-3 times weekly</div>
+            <?php if (mysqli_num_rows($result) > 0) { ?>
+                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                    <div class="card">
+            
+                        <img src="<?php echo escape(resolvePostImage($row['post_img'])); ?>"
+                            alt="<?php echo escape($row['title']); ?>">
+                        <div class="card-content">
+                            <h3><?php echo escape($row['title']); ?></h3>
+                            <small><?php echo escape($row['user_name']); ?></small>
+                            <p><?php echo escape($row['body']); ?></p>
+                            <div class="info">🗓️ Posted on: <?php echo escape($row['post_date']); ?></div>
+                          
+                        </div>
+                    </div>
+                <?php } ?>
+            <?php } else { ?>
+                <div class="empty-state">
+                    No posts were found in the database.
                 </div>
-            </div>
-
-            <div class="card">
-                <div class="tag">medium</div>
-                <img
-                    src="https://npr.brightspotcdn.com/dims4/default/bdec9eb/2147483647/strip/true/crop/1366x768+0+0/resize/880x495!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2F29%2F78%2F49bf64b04749acb2541763edb03e%2Fhydrangea-dan-tuohy-photo-08192024.jpg">
-                <div class="card-content">
-                    <h3>Hydrangea</h3>
-                    <small>Perennial</small>
-                    <div class="info">☀️ Partial sun</div>
-                    <div class="info">💧 Once weekly</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="tag">easy</div>
-                <img src="https://images.unsplash.com/photo-1468327768560-75b778cbb551">
-                <div class="card-content">
-                    <h3>Tulip</h3>
-                    <small>annual</small>
-                    <div class="info">☀️ Full sun</div>
-                    <div class="info">💧 Once weekly</div>
-                </div>
-            </div>
+            <?php } ?>
 
         </div>
 
