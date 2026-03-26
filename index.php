@@ -53,17 +53,18 @@ if(isset($_GET['plant_type']) && !empty($_GET['plant_type'])){
 }
 
 // Putting together the queries
-$q = "SELECT p.plant_name, p.plant_type, p.plant_desc, p.sun_level, p.start_plant, p.end_plant, p.difficulty, p.plant_img,
+$q = "SELECT p.plant_name, p.plant_type, p.plant_desc, p.sun_level, s.start_plant, s.end_plant, p.difficulty, p.plant_img,
         GROUP_CONCAT(DISTINCT pe.pest_name ORDER BY pe.pest_name SEPARATOR ', ') AS pests
       FROM plants AS p
       LEFT JOIN plants_pests AS pp ON p.plant_id = pp.plant_id
-      LEFT JOIN pests AS pe ON pp.pest_id = pe.pest_id";
+      LEFT JOIN pests AS pe ON pp.pest_id = pe.pest_id
+      INNER JOIN seasons AS s ON p.season_id = s.season_id";
 
 if (!empty($conditions)) {
     $q .= " WHERE " . implode(" AND ", $conditions);
 }
 
-$q .= " GROUP BY p.plant_id, p.plant_name, p.plant_type, p.plant_desc, p.sun_level, p.start_plant, p.end_plant, p.difficulty, p.plant_img
+$q .= " GROUP BY p.plant_id, p.plant_name, p.plant_type, p.plant_desc, p.sun_level, s.start_plant, s.end_plant, p.difficulty, p.plant_img
         ORDER BY p.plant_name";
 
 $result = mysqli_query($con, $q) or die("Query failed: " . mysqli_error($con));
