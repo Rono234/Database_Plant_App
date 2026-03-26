@@ -14,6 +14,15 @@ CREATE TABLE categories
 		PRIMARY KEY (category_id)
 );
 
+CREATE TABLE seasons
+(
+	season_id		INT			AUTO_INCREMENT NOT NULL,
+    start_plant		INT			NOT NULL,
+    end_plant		INT			NOT NULL,
+    CONSTRAINT seasons_pk
+		PRIMARY KEY (season_id)
+);
+
 CREATE TABLE plants
 (
 	plant_id		INT			AUTO_INCREMENT NOT NULL,
@@ -21,12 +30,13 @@ CREATE TABLE plants
     plant_type		VARCHAR(50)	NOT NULL,
     plant_desc		VARCHAR(60)	NOT NULL,
     sun_level		VARCHAR(50)	NOT NULL,
-    start_plant		INT		NOT NULL,
-    end_plant		INT		NOT NULL,
+    season_id	INT		NOT NULL,
     difficulty		VARCHAR(30)	NOT NULL,
     plant_img		VARCHAR(50)	NOT NULL,
     CONSTRAINT plants_pk
-		PRIMARY KEY (plant_id)
+		PRIMARY KEY (plant_id),
+	CONSTRAINT plants_seaons_fk
+		FOREIGN KEY (season_id) REFERENCES seasons (season_id)
 );
 
 CREATE TABLE plants_categories
@@ -43,7 +53,6 @@ CREATE TABLE pests
 (
 	pest_id			INT			AUTO_INCREMENT NOT NULL,
     pest_name		VARCHAR(50)	NOT NULL,
-    pest_type		VARCHAR(50)	NOT NULL,
     CONSTRAINT pests_pk
 		PRIMARY KEY (pest_id)
 );
@@ -99,6 +108,10 @@ CREATE TABLE comments
 		FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
 
+-- create an index
+CREATE UNIQUE INDEX plants_plant_name_ix
+	ON plants (plant_name);
+
 -- insert rows into tables
 INSERT INTO categories VALUES
 (1,'Flower'),
@@ -112,47 +125,59 @@ INSERT INTO categories VALUES
 (9,'Container-Friendly'),
 (10,'Fragrant');
 
+INSERT INTO seasons VALUES
+(1,3,11),
+(2,5,9),
+(3,3,10),
+(4,4,10),
+(5,4,7),
+(6,9,11),
+(7,4,9),
+(8,5,10),
+(9,4,11),
+(10,1,12);
+
 INSERT INTO plants VALUES
-(1,"Hydrangea","Perennial","Showy flowering shrub with large mophead blooms.","Partial Shade to Full Sun",3,11,"Hard","hydrangea.jpg"),
-(2,"Tomato","Perennial","Popular garden fruit; requires staking and water.","Full Sun",5,9,"Easy","tomato.jpg"),
-(3,"Horsetail","Perennial","Unique, reed-like perennial that thrives in wet soil.","Full Sun to Partial Shade",3,10,"Medium","horsetail.jpg"),
-(4,"Royal Fern","Perennial","Large, elegant fern with bright green fronds.","Partial Shade to Full Shade",4,10,"Medium","royalfern.jpg"),
-(5,"Rose","Perennial","Classic flowering shrub known for fragrance.","Full Sun",3,11,"Medium","rose.jpg"),
-(6,"Bleeding Heart","Perennial","Shade-loving perennial with heart-shaped flowers.","Partial Shade to Full Shade",4,7,"Hard","bleedingheart.jpg"),
-(7,"Peony","Perennial","Long-lived perennial with massive spring blooms.","Full Sun",9,11,"Easy","peony.jpg"),
-(8,"Coneflower","Perennial","Hardy wildflower with daisy-like petals.","Full Sun",4,10,"Easy ","coneflower.jpg"),
-(9,"Daylily","Perennial","Extremely tough perennial with daily blooms.","Full Sun to Partial Shade",4,9,"Medium","daylily.jpg"),
-(10,"Petunia","Annual","Prolific annual known for vibrant flowers.","Full Sun",5,10,"Easy","petunia.jpg"),
-(11,"Sunflower","Annual","Tall, fast-growing annual with iconic heads.","Full Sun",5,9,"Easy","sunflower.jpg"),
-(12,"Zinnia","Annual","Easy-to-grow annual with colorful heads.","Full Sun",5,10,"Easy","zinnia.jpg"),
-(13,"Marigold","Annual","Hardy annual that helps repel garden pests.","Full Sun",5,10,"Easy","marigold.jpg"),
-(14,"Rosemary","Perennial","Woody perennial herb for culinary and aromatic use.","Full Sun",4,11,"Easy","rosemary.jpg"),
-(15,"Thyme","Perennial","Low-growing, versatile herb with flavorful leaves.","Full Sun",4,11,"Easy","thyme.jpg"),
-(16,"Basil","Annual","Fragrant annual herb essential for Italian dishes.","Full Sun",5,9,"Easy","basil.jpg"),
-(17,"Cilantro","Annual","Fast-growing herb used for leaves and seeds.","Partial Shade",3,10,"Easy","cilantro.jpg"),
-(18,"Dill","Annual","Feathery annual herb used for pickling.","Full Sun",4,9,"Easy","dill.jpg"),
-(19,"Azalea","Perennial","Acid-loving shrub with spectacular spring displays.","Partial Shade",3,11,"Hard","azalea.jpg"),
-(20,"Ostrich Fern","Perennial","Large, upright fern resembling ostrich feathers.","Partial Shade to Full Shade",4,10,"Hard","ostrichfern.jpg"),
-(21,"Boston Fern","Perennial","Classic indoor/outdoor fern with feathery fronds.","Partial Shade / Indirect",5,10,"Hard","bostonfern.jpg"),
-(22,"Pepper","Annual","Heat-loving vegetable ranging from sweet to spicy.","Full Sun",5,9,"Medium","pepper.jpg"),
-(23,"Squash","Annual","Vining or bush plant producing summer gourds.","Full Sun",5,9,"Easy","squash.jpg"),
-(24,"Lettuce","Annual","Quick-growing leafy green for cool-weather salads.","Partial Shade to Full Sun",3,10,"Easy","lettuce.jpg"),
-(25,"Maidenhair Fern","Perennial","Delicate fern with thin black stems and lacy leaves.","Partial Shade to Full Shade",4,10,"Medium","madenhairfern.jpg"),
-(26,"Japanese Painted Fern","Perennial","Unique fern with silvery-grey and purple fronds.","Partial Shade to Full Shade",4,10,"Hard","japanesepaintedfern.jpg"),
-(27,"Lilac","Perennial","Fragrant spring shrub with purple or white flowers.","Full Sun",3,11,"Easy","lilac.jpg"),
-(28,"Blueberry","Perennial","Fruit-bearing shrub that requires acidic soil.","Full Sun",3,11,"Easy","blueberry.png"),
-(29,"Juniper","Perennial","Evergreen conifer with needle-like leaves.","Full Sun",1,12,"Hard","juniper.jpg"),
-(30,"Boxwood","Perennial","Dense evergreen shrub used for formal hedging.","Full Sun to Partial Shade",1,12,"Hard","boxwood.jpg"),
-(31,"Sage","Perennial","Woody perennial herb with fuzzy, silver leaves.","Full Sun",4,11,"Medium","sage.jpg"),
-(32,"Mint","Perennial","Vigorous, spreading herb with aromatic leaves.","Partial Shade to Full Sun",3,11,"Hard","mint.jpg"),
-(33,"Lavender","Perennial","Fragrant purple spikes used for oils and tea.","Full Sun",4,11,"Easy","lavender.jpg"),
-(34,"Oregano","Perennial","Pungent perennial herb for Mediterranean cooking.","Full Sun",4,11,"Easy","oregano.jpg"),
-(35,"Chives","Perennial","Clumping herb with grass-like onion flavor.","Full Sun to Partial Shade",3,11,"Easy","chive.jpg"),
-(36,"German Chamomile","Annual","Daisy-like annual used primarily for calming teas.","Full Sun",4,9,"Medium","germanchamomile.jpg"),
-(37,"Calendula","Annual","Cheerful orange annual with medicinal petals.","Full Sun to Partial Shade",4,10,"Hard","calendula.jpg"),
-(38,"Viola","Annual","Small, edible flowers that thrive in cool weather.","Partial Shade to Full Sun",3,11,"Hard","viola.jpg"),
-(39,"Nasturtiam","Annual","Peppery edible flowers that trail or climb.","Full Sun",5,10,"Hard","nasturtiam.jpg"),
-(40,"Parsley","Annual","Nutrient-rich herb used as a garnish or flavor.","Partial Shade to Full Sun",3,11,"Easy","parsley.jpg");
+(1,"Hydrangea","Perennial","Showy flowering shrub with large mophead blooms.","Partial Shade to Full Sun",1,"Hard","hydrangea.jpg"),
+(2,"Tomato","Perennial","Popular garden fruit; requires staking and water.","Full Sun",2,"Easy","tomato.jpg"),
+(3,"Horsetail","Perennial","Unique, reed-like perennial that thrives in wet soil.","Full Sun to Partial Shade",3,"Medium","horsetail.jpg"),
+(4,"Royal Fern","Perennial","Large, elegant fern with bright green fronds.","Partial Shade to Full Shade",4,"Medium","royalfern.jpg"),
+(5,"Rose","Perennial","Classic flowering shrub known for fragrance.","Full Sun",1,"Medium","rose.jpg"),
+(6,"Bleeding Heart","Perennial","Shade-loving perennial with heart-shaped flowers.","Partial Shade to Full Shade",5,"Hard","bleedingheart.jpg"),
+(7,"Peony","Perennial","Long-lived perennial with massive spring blooms.","Full Sun",6,"Easy","peony.jpg"),
+(8,"Coneflower","Perennial","Hardy wildflower with daisy-like petals.","Full Sun",4,"Easy ","coneflower.jpg"),
+(9,"Daylily","Perennial","Extremely tough perennial with daily blooms.","Full Sun to Partial Shade",7,"Medium","daylily.jpg"),
+(10,"Petunia","Annual","Prolific annual known for vibrant flowers.","Full Sun",8,"Easy","petunia.jpg"),
+(11,"Sunflower","Annual","Tall, fast-growing annual with iconic heads.","Full Sun",2,"Easy","sunflower.jpg"),
+(12,"Zinnia","Annual","Easy-to-grow annual with colorful heads.","Full Sun",8,"Easy","zinnia.jpg"),
+(13,"Marigold","Annual","Hardy annual that helps repel garden pests.","Full Sun",8,"Easy","marigold.jpg"),
+(14,"Rosemary","Perennial","Woody perennial herb for culinary and aromatic use.","Full Sun",9,"Easy","rosemary.jpg"),
+(15,"Thyme","Perennial","Low-growing, versatile herb with flavorful leaves.","Full Sun",9,"Easy","thyme.jpg"),
+(16,"Basil","Annual","Fragrant annual herb essential for Italian dishes.","Full Sun",2,"Easy","basil.jpg"),
+(17,"Cilantro","Annual","Fast-growing herb used for leaves and seeds.","Partial Shade",3,"Easy","cilantro.jpg"),
+(18,"Dill","Annual","Feathery annual herb used for pickling.","Full Sun",7,"Easy","dill.jpg"),
+(19,"Azalea","Perennial","Acid-loving shrub with spectacular spring displays.","Partial Shade",1,"Hard","azalea.jpg"),
+(20,"Ostrich Fern","Perennial","Large, upright fern resembling ostrich feathers.","Partial Shade to Full Shade",4,"Hard","ostrichfern.jpg"),
+(21,"Boston Fern","Perennial","Classic indoor/outdoor fern with feathery fronds.","Partial Shade / Indirect",8,"Hard","bostonfern.jpg"),
+(22,"Pepper","Annual","Heat-loving vegetable ranging from sweet to spicy.","Full Sun",2,"Medium","pepper.jpg"),
+(23,"Squash","Annual","Vining or bush plant producing summer gourds.","Full Sun",2,"Easy","squash.jpg"),
+(24,"Lettuce","Annual","Quick-growing leafy green for cool-weather salads.","Partial Shade to Full Sun",3,"Easy","lettuce.jpg"),
+(25,"Maidenhair Fern","Perennial","Delicate fern with thin black stems and lacy leaves.","Partial Shade to Full Shade",4,"Medium","madenhairfern.jpg"),
+(26,"Japanese Painted Fern","Perennial","Unique fern with silvery-grey and purple fronds.","Partial Shade to Full Shade",4,"Hard","japanesepaintedfern.jpg"),
+(27,"Lilac","Perennial","Fragrant spring shrub with purple or white flowers.","Full Sun",1,"Easy","lilac.jpg"),
+(28,"Blueberry","Perennial","Fruit-bearing shrub that requires acidic soil.","Full Sun",1,"Easy","blueberry.png"),
+(29,"Juniper","Perennial","Evergreen conifer with needle-like leaves.","Full Sun",10,"Hard","juniper.jpg"),
+(30,"Boxwood","Perennial","Dense evergreen shrub used for formal hedging.","Full Sun to Partial Shade",10,"Hard","boxwood.jpg"),
+(31,"Sage","Perennial","Woody perennial herb with fuzzy, silver leaves.","Full Sun",9,"Medium","sage.jpg"),
+(32,"Mint","Perennial","Vigorous, spreading herb with aromatic leaves.","Partial Shade to Full Sun",1,"Hard","mint.jpg"),
+(33,"Lavender","Perennial","Fragrant purple spikes used for oils and tea.","Full Sun",9,"Easy","lavender.jpg"),
+(34,"Oregano","Perennial","Pungent perennial herb for Mediterranean cooking.","Full Sun",9,"Easy","oregano.jpg"),
+(35,"Chives","Perennial","Clumping herb with grass-like onion flavor.","Full Sun to Partial Shade",1,"Easy","chive.jpg"),
+(36,"German Chamomile","Annual","Daisy-like annual used primarily for calming teas.","Full Sun",7,"Medium","germanchamomile.jpg"),
+(37,"Calendula","Annual","Cheerful orange annual with medicinal petals.","Full Sun to Partial Shade",4,"Hard","calendula.jpg"),
+(38,"Viola","Annual","Small, edible flowers that thrive in cool weather.","Partial Shade to Full Sun",1,"Hard","viola.jpg"),
+(39,"Nasturtiam","Annual","Peppery edible flowers that trail or climb.","Full Sun",8,"Hard","nasturtiam.jpg"),
+(40,"Parsley","Annual","Nutrient-rich herb used as a garnish or flavor.","Partial Shade to Full Sun",1,"Easy","parsley.jpg");
 
 INSERT INTO plants_categories VALUES
 (1,1),
@@ -247,16 +272,16 @@ INSERT INTO plants_categories VALUES
 (40,9);
 
 INSERT INTO pests VALUES
-(1,'Caterpillar','Harmful'),
-(2,'Ladybug','Beneficial'),
-(3,'Aphids','Harmful'),
-(4,'Japanese Beetles','Harmful'),
-(5,'Bees','Beneficial'),
-(6,'Spider Mites','Harmful'),
-(7,'Lacewings','Beneficial'),
-(8,'Slugs','Harmful'),
-(9,'Butterflies','Beneficial'),
-(10,'Hoverflies','Beneficial');
+(1,'Caterpillar'),
+(2,'Ladybug'),
+(3,'Aphids'),
+(4,'Japanese Beetles'),
+(5,'Bees'),
+(6,'Spider Mites'),
+(7,'Lacewings'),
+(8,'Slugs'),
+(9,'Butterflies'),
+(10,'Hoverflies');
 
 INSERT INTO plants_pests VALUES
 (1,1),
