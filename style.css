@@ -28,7 +28,7 @@ body {
 
 /* SIDEBAR FILTER */
 .sidebar {
-  width: 210px;
+  width: 230px;
   background: var(--light-green);
   border-right: 2px solid #f3d1dc;
   padding: 20px;
@@ -80,7 +80,7 @@ body {
 .main {
   flex: 1;
   padding: 20px;
-  margin-left: 210px;
+  margin-left: 240px;
   margin-right: 10px;
 }
 
