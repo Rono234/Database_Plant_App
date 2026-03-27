@@ -159,6 +159,7 @@ function resolvePlantImage($fileName)
     <title>Blossom</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Pacifico&display=swap"
         rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 
 </head>
@@ -170,8 +171,11 @@ function resolvePlantImage($fileName)
             <h3>Filters:</h3>
 
             <div class="filter-section">
-                <div class="filter-group">
-                    <strong class="filter-title">Type:</strong>
+                <details class="filter-group" data-filter-group="type">
+                    <summary>
+                        <strong class="filter-title">Type:</strong>
+                        <button class="filter-toggle" type="button" aria-label="Toggle Type filter"></button>
+                    </summary>
                     <label><input type="checkbox" name="plant_type[]" form="filter-form" value="Perennial"
                         onchange = "this.form.submit()"
                         <?php if(isset($_GET['plant_type']) && in_array('Perennial', $_GET['plant_type'])) echo 'checked'; ?>
@@ -183,10 +187,13 @@ function resolvePlantImage($fileName)
                         <?php if(isset($_GET['plant_type']) && in_array('Annual', $_GET['plant_type'])) echo 'checked'; ?>
                         > Annual
                     </label>
-                </div>
+                </details>
 
-                <div class="filter-group">
-                    <strong class="filter-title">Light:</strong>
+                <details class="filter-group" data-filter-group="light">
+                    <summary>
+                        <strong class="filter-title">Light:</strong>
+                        <button class="filter-toggle" type="button" aria-label="Toggle Light filter"></button>
+                    </summary>
                     <label><input type="checkbox" name="sun_level[]" form="filter-form" value="Full Sun"
                         onchange = "this.form.submit()"
                         <?php if(isset($_GET['sun_level']) && in_array('Full Sun', $_GET['sun_level'])) echo 'checked'; ?>
@@ -198,10 +205,13 @@ function resolvePlantImage($fileName)
                         <?php if(isset($_GET['sun_level']) && in_array('Partial Shade', $_GET['sun_level'])) echo 'checked'; ?>
                         > Partial Shade
                     </label>
-                </div>
+                </details>
 
-                <div class="filter-group">
-                    <strong class="filter-title">Season:</strong>
+                <details class="filter-group" data-filter-group="season">
+                    <summary>
+                        <strong class="filter-title">Season:</strong>
+                        <button class="filter-toggle" type="button" aria-label="Toggle Season filter"></button>
+                    </summary>
                     <label><input type="checkbox" name="season[]" form="filter-form" value="Spring"
                         onchange = "this.form.submit()"
                         <?php if(isset($_GET['season']) && in_array('Spring', $_GET['season'])) echo 'checked'; ?>
@@ -226,10 +236,13 @@ function resolvePlantImage($fileName)
                         > Winter
                     </label>
 
-                </div>
+                </details>
 
-                <div class="filter-group">
-                    <strong class="filter-title">Pest:</strong>
+                <details class="filter-group" data-filter-group="pest">
+                    <summary>
+                        <strong class="filter-title">Pest:</strong>
+                        <button class="filter-toggle" type="button" aria-label="Toggle Pest filter"></button>
+                    </summary>
                     <label><input type="checkbox" name="pests[]" form="filter-form" value="Ladybug"
                         onchange = "this.form.submit()"
                         <?php if(isset($_GET['pests']) && in_array('Ladybug', $_GET['pests'])) echo 'checked'; ?>
@@ -289,10 +302,13 @@ function resolvePlantImage($fileName)
                         <?php if(isset($_GET['pests']) && in_array('Hoverflies', $_GET['pests'])) echo 'checked'; ?>
                         > Hoverflies
                     </label>
-                </div>
+                </details>
 
-                <div class="filter-group">
-                    <strong class="filter-title">Difficulty:</strong>
+                <details class="filter-group" data-filter-group="difficulty">
+                    <summary>
+                        <strong class="filter-title">Difficulty:</strong>
+                        <button class="filter-toggle" type="button" aria-label="Toggle Difficulty filter"></button>
+                    </summary>
                     <label><input type="checkbox" name="difficulty[]" form="filter-form" value="Easy"
                         onchange = "this.form.submit()"
                         <?php if(isset($_GET['difficulty']) && in_array('Easy', $_GET['difficulty'])) echo 'checked'; ?>
@@ -310,7 +326,7 @@ function resolvePlantImage($fileName)
                         <?php if(isset($_GET['difficulty']) && in_array('Hard', $_GET['difficulty'])) echo 'checked'; ?>
                         > Hard
                     </label>
-                </div>
+                </details>
             </div>
         </div>
 
@@ -320,7 +336,7 @@ function resolvePlantImage($fileName)
             <!-- HEADER -->
             <div class="header">
                 <div class="header-top">
-                    <div class="logo">🌸 blossom</div>
+                    <div class="logo">🌸 Blossom</div>
                     <div class="tabs">
                         <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>
                         <a href="community.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'community.php' ? 'active' : ''; ?>">Community</a>
@@ -361,5 +377,73 @@ function resolvePlantImage($fileName)
             <?php } ?>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var storageKey = 'blossom-open-filters';
+            var filterForm = document.getElementById('filter-form');
+            var filterGroups = Array.from(document.querySelectorAll('.filter-group[data-filter-group]'));
+
+            function saveOpenGroups() {
+                var openGroups = filterGroups
+                    .filter(function (group) {
+                        return group.open;
+                    })
+                    .map(function (group) {
+                        return group.dataset.filterGroup;
+                    });
+
+                sessionStorage.setItem(storageKey, JSON.stringify(openGroups));
+            }
+
+            function restoreOpenGroups() {
+                var savedState = sessionStorage.getItem(storageKey);
+
+                if (!savedState) {
+                    return;
+                }
+
+                try {
+                    var openGroups = JSON.parse(savedState);
+
+                    filterGroups.forEach(function (group) {
+                        group.open = openGroups.indexOf(group.dataset.filterGroup) !== -1;
+                    });
+                } catch (error) {
+                    sessionStorage.removeItem(storageKey);
+                }
+            }
+
+            restoreOpenGroups();
+
+            filterGroups.forEach(function (group) {
+                var summary = group.querySelector('summary');
+                var toggle = group.querySelector('.filter-toggle');
+
+                summary.addEventListener('click', function (event) {
+                    if (!event.target.closest('.filter-toggle')) {
+                        event.preventDefault();
+                    }
+                });
+
+                summary.addEventListener('keydown', function (event) {
+                    if ((event.key === 'Enter' || event.key === ' ') && event.target === summary) {
+                        event.preventDefault();
+                    }
+                });
+
+                toggle.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    group.open = !group.open;
+                    saveOpenGroups();
+                });
+
+                group.addEventListener('toggle', saveOpenGroups);
+            });
+
+            if (filterForm) {
+                filterForm.addEventListener('submit', saveOpenGroups);
+            }
+        });
+    </script>
 </body>
 </html>
