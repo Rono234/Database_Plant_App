@@ -12,7 +12,7 @@ if(isset($_GET['search']) && !empty($_GET['search'])) {
 // Putting together the queries
 $q = "SELECT pt.title, pt.body, pt.post_date, pt.post_img, u.user_name 
     FROM posts AS pt 
-    LEFT JOIN users AS u ON pt.user_id = u.user_id";
+    INNER JOIN users AS u ON pt.user_id = u.user_id";
 
 if (!empty($conditions)) {
     $q .= " WHERE " . implode(" AND ", $conditions);
@@ -119,6 +119,7 @@ function resolvePostImage($fileName)
                 <div class="tabs">
                     <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>
                     <a href="community.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'community.php' ? 'active' : ''; ?>">Community</a>
+                    <button class="new-post">+ New Post</button>
                 </div>
             </div>
 
