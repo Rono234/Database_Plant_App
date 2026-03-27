@@ -53,7 +53,7 @@ if(isset($_GET['difficulty']) && !empty($_GET['difficulty'])){
 }
 
 // Putting together the queries
-$q = "SELECT p.plant_name, p.plant_type, p.plant_desc, p.sun_level, s.start_plant, s.end_plant, p.difficulty, p.plant_img,
+$q = "SELECT p.plant_id, p.plant_name, p.plant_type, p.plant_desc, p.sun_level, s.start_plant, s.end_plant, p.difficulty, p.plant_img,
         GROUP_CONCAT(DISTINCT pe.pest_name ORDER BY pe.pest_name SEPARATOR ', ') AS pests,
       CASE
         WHEN s.start_plant IN (12, 1, 2) THEN 'Winter'
@@ -132,13 +132,6 @@ function resolvePlantImage($fileName)
         $candidates[] = $baseName . '.png';
     }
 
-    $specialNames = array(
-        'lettuce' => 'letttuce.jpg',
-        'oregano' => 'oregano.jpeg'
-    );
-    if (isset($specialNames[strtolower($baseName)])) {
-        $candidates[] = $specialNames[strtolower($baseName)];
-    }
 
     foreach (array_unique($candidates) as $candidate) {
         $safeCandidate = basename($candidate);
@@ -356,19 +349,21 @@ function resolvePlantImage($fileName)
         <div class="grid">
             <?php if (mysqli_num_rows($result) > 0) { ?>
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <div class="card" style="margin-bottom: 10px;">
-                        <div class="tag"><?php echo escape(strtolower(trim($row['difficulty']))); ?></div>
-                        <img src="<?php echo escape(resolvePlantImage($row['plant_img'])); ?>" alt="<?php echo escape($row['plant_name']); ?>">
-                        <div class="card-content">
-                            <h3><?php echo escape($row['plant_name']); ?></h3>
-                            <small><?php echo escape($row['plant_type']); ?></small>
-                            <p><?php echo escape($row['plant_desc']); ?></p>
-                            <div class="info">☀️ <?php echo escape($row['sun_level']); ?></div>
-                            <div class="info">🗓️ Planting Window: <?php echo escape(formatPlantingWindow($row['start_plant'], $row['end_plant'])); ?></div>
-                            <div class="info">🌻 Season: <?php echo escape($row['planting_season'] ?: 'No listed season'); ?></div>
-                            <div class="info">🐞 Insects: <?php echo escape($row['pests'] ?: 'No listed pests'); ?></div>
+                    <a class="card-link" href="detail.php?plant_id=<?php echo (int) $row['plant_id']; ?>">
+                        <div class="card" style="margin-bottom: 10px;">
+                            <div class="tag"><?php echo escape(strtolower(trim($row['difficulty']))); ?></div>
+                            <img src="<?php echo escape(resolvePlantImage($row['plant_img'])); ?>" alt="<?php echo escape($row['plant_name']); ?>">
+                            <div class="card-content">
+                                <h3><?php echo escape($row['plant_name']); ?></h3>
+                                <small><?php echo escape($row['plant_type']); ?></small>
+                                <p><?php echo escape($row['plant_desc']); ?></p>
+                                <div class="info">☀️ <?php echo escape($row['sun_level']); ?></div>
+                                <div class="info">🗓️ Planting Window: <?php echo escape(formatPlantingWindow($row['start_plant'], $row['end_plant'])); ?></div>
+                                <div class="info">🌻 Season: <?php echo escape($row['planting_season'] ?: 'No listed season'); ?></div>
+                                <div class="info">🐞 Insects: <?php echo escape($row['pests'] ?: 'No listed pests'); ?></div>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 <?php } ?>
             <?php } else { ?>
                 <div class="empty-state">

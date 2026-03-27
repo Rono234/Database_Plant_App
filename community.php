@@ -10,7 +10,7 @@ if(isset($_GET['search']) && !empty($_GET['search'])) {
 }
 
 // Putting together the queries
-$q = "SELECT pt.title, pt.body, pt.post_date, pt.post_img, u.user_name 
+$q = "SELECT pt.post_id, pt.title, pt.body, pt.post_date, pt.post_img, u.user_name 
     FROM posts AS pt 
     INNER JOIN users AS u ON pt.user_id = u.user_id";
 
@@ -138,17 +138,18 @@ function resolvePostImage($fileName)
         <div class="grid">
             <?php if (mysqli_num_rows($result) > 0) { ?>
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <div class="card" style="margin-bottom: 10px;">
-                        <img src="<?php echo escape(resolvePostImage($row['post_img'])); ?>"
-                            alt="<?php echo escape($row['title']); ?>">
-                        <div class="card-content">
-                            <h3><?php echo escape($row['title']); ?></h3>
-                            <small><?php echo escape($row['user_name']); ?></small>
-                            <p><?php echo escape($row['body']); ?></p>
-                            <div class="info">🗓️ Posted on: <?php echo escape($row['post_date']); ?></div>
-                          
+                    <a class="card-link" href="detail.php?post_id=<?php echo (int) $row['post_id']; ?>">
+                        <div class="card" style="margin-bottom: 10px;">
+                            <img src="<?php echo escape(resolvePostImage($row['post_img'])); ?>"
+                                alt="<?php echo escape($row['title']); ?>">
+                            <div class="card-content">
+                                <h3><?php echo escape($row['title']); ?></h3>
+                                <small><?php echo escape($row['user_name']); ?></small>
+                                <p><?php echo escape($row['body']); ?></p>
+                                <div class="info">🗓️ Posted on: <?php echo escape($row['post_date']); ?></div>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 <?php } ?>
             <?php } else { ?>
                 <div class="empty-state">
