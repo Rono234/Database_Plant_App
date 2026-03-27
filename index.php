@@ -12,6 +12,16 @@ if(isset($_GET['search']) && !empty($_GET['search'])) {
     $conditions[] = "p.plant_name LIKE '%$search%'";
 }
 
+// Filter by plant type (perennial vs annual)
+if(isset($_GET['plant_type']) && !empty($_GET['plant_type'])){
+    $plant_type_security = 
+        array_map(function($pt) use ($con){
+            return mysqli_real_escape_string($con, $pt);
+        }, $_GET['plant_type']);
+    $pt_array = implode("','", $plant_type_security);
+    $conditions[] = "p.plant_type IN ('$pt_array') ";
+}
+
 // Filter by sun level
 if(isset($_GET['sun_level']) && !empty($_GET['sun_level'])){
     $sun_level_security = 
@@ -19,7 +29,7 @@ if(isset($_GET['sun_level']) && !empty($_GET['sun_level'])){
             return mysqli_real_escape_string($con, $s);
         }, $_GET['sun_level']);
     $sun_level_array = implode("','", $sun_level_security);
-    $conditions[] = "p.sun_level IN ('$sun_level_array') ";
+    $conditions[] = "p.sun_level LIKE '$sun_level_array%'";
 }
 
 // Filter by pests
@@ -29,7 +39,7 @@ if(isset($_GET['pests']) && !empty($_GET['pests'])){
             return mysqli_real_escape_string($con, $p);
         }, $_GET['pests']);
     $pests_array = implode("','", $pests_security);
-    $conditions[] = "pe.pest_name IN ('$pests_array') ";
+    $conditions[] = "p.plant_id IN(SELECT npp.plant_id FROM plants_pests AS npp JOIN pests AS npe ON npp.pest_id = npe.pest_id WHERE npe.pest_name IN ('$pests_array'))";
 }
 
 // Filter by difficulty level of planting
@@ -42,19 +52,16 @@ if(isset($_GET['difficulty']) && !empty($_GET['difficulty'])){
     $conditions[] = "p.difficulty IN ('$difficulty_array') ";
 }
 
-// Filter by plant type (perennial vs annual)
-if(isset($_GET['plant_type']) && !empty($_GET['plant_type'])){
-    $plant_type_security = 
-        array_map(function($pt) use ($con){
-            return mysqli_real_escape_string($con, $pt);
-        }, $_GET['plant_type']);
-    $pt_array = implode("','", $plant_type_security);
-    $conditions[] = "p.plant_type IN ('$pt_array') ";
-}
-
 // Putting together the queries
 $q = "SELECT p.plant_name, p.plant_type, p.plant_desc, p.sun_level, s.start_plant, s.end_plant, p.difficulty, p.plant_img,
-        GROUP_CONCAT(DISTINCT pe.pest_name ORDER BY pe.pest_name SEPARATOR ', ') AS pests
+        GROUP_CONCAT(DISTINCT pe.pest_name ORDER BY pe.pest_name SEPARATOR ', ') AS pests,
+      CASE
+        WHEN s.start_plant IN (12, 1, 2) THEN 'Winter'
+        WHEN s.start_plant BETWEEN 3 and 5 THEN 'Spring'
+        WHEN s.start_plant BETWEEN 6 and 8 THEN 'Summer'
+        WHEN s.start_plant BETWEEN 9 and 11 THEN 'Fall'
+        ELSE 'Unknown'
+      END AS planting_season
       FROM plants AS p
       LEFT JOIN plants_pests AS pp ON p.plant_id = pp.plant_id
       LEFT JOIN pests AS pe ON pp.pest_id = pe.pest_id
@@ -64,8 +71,19 @@ if (!empty($conditions)) {
     $q .= " WHERE " . implode(" AND ", $conditions);
 }
 
-$q .= " GROUP BY p.plant_id, p.plant_name, p.plant_type, p.plant_desc, p.sun_level, s.start_plant, s.end_plant, p.difficulty, p.plant_img
-        ORDER BY p.plant_name";
+$q .= " GROUP BY p.plant_id, p.plant_name, p.plant_type, p.plant_desc, p.sun_level, s.start_plant, s.end_plant, p.difficulty, p.plant_img, planting_season";
+
+// Filter by planting season
+if(isset($_GET['season']) && !empty($_GET['season'])){
+    $season_security =
+        array_map(function($s) use ($con){
+            return mysqli_real_escape_string($con, $s);
+        }, $_GET['season']);
+    $season_array = implode("','", $season_security);
+    $q .= " HAVING planting_season IN ('$season_array')";
+}
+
+$q .= " ORDER BY p.plant_name";
 
 $result = mysqli_query($con, $q) or die("Query failed: " . mysqli_error($con));
 
@@ -153,6 +171,21 @@ function resolvePlantImage($fileName)
 
             <div class="filter-section">
                 <div class="filter-group">
+                    <strong class="filter-title">Type:</strong>
+                    <label><input type="checkbox" name="plant_type[]" form="filter-form" value="Perennial"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['plant_type']) && in_array('Perennial', $_GET['plant_type'])) echo 'checked'; ?>
+                        > Perennial
+                    </label>
+
+                    <label><input type="checkbox" name="plant_type[]" form="filter-form" value="Annual"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['plant_type']) && in_array('Annual', $_GET['plant_type'])) echo 'checked'; ?>
+                        > Annual
+                    </label>
+                </div>
+
+                <div class="filter-group">
                     <strong class="filter-title">Light:</strong>
                     <label><input type="checkbox" name="sun_level[]" form="filter-form" value="Full Sun"
                         onchange = "this.form.submit()"
@@ -165,12 +198,34 @@ function resolvePlantImage($fileName)
                         <?php if(isset($_GET['sun_level']) && in_array('Partial Shade', $_GET['sun_level'])) echo 'checked'; ?>
                         > Partial Shade
                     </label>
+                </div>
 
-                    <!-- <label><input type="checkbox" name="sun_level[]" form="filter-form" value="Full Shade"
+                <div class="filter-group">
+                    <strong class="filter-title">Season:</strong>
+                    <label><input type="checkbox" name="season[]" form="filter-form" value="Spring"
                         onchange = "this.form.submit()"
-                        <?php if(isset($_GET['sun_level']) && in_array('Full Shade', $_GET['sun_level'])) echo 'checked'; ?>
-                        > Full Shade
-                    </label> -->
+                        <?php if(isset($_GET['season']) && in_array('Spring', $_GET['season'])) echo 'checked'; ?>
+                        > Spring
+                    </label>
+
+                    <label><input type="checkbox" name="season[]" form="filter-form" value="Summer"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['season']) && in_array('Summer', $_GET['season'])) echo 'checked'; ?>
+                        > Summer
+                    </label>
+
+                    <label><input type="checkbox" name="season[]" form="filter-form" value="Fall"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['season']) && in_array('Fall', $_GET['season'])) echo 'checked'; ?>
+                        > Fall
+                    </label>
+
+                    <label><input type="checkbox" name="season[]" form="filter-form" value="Winter"
+                        onchange = "this.form.submit()"
+                        <?php if(isset($_GET['season']) && in_array('Winter', $_GET['season'])) echo 'checked'; ?>
+                        > Winter
+                    </label>
+
                 </div>
 
                 <div class="filter-group">
@@ -256,21 +311,6 @@ function resolvePlantImage($fileName)
                         > Hard
                     </label>
                 </div>
-
-                <div class="filter-group">
-                    <strong class="filter-title">Type:</strong>
-                    <label><input type="checkbox" name="plant_type[]" form="filter-form" value="Perennial"
-                        onchange = "this.form.submit()"
-                        <?php if(isset($_GET['plant_type']) && in_array('Perennial', $_GET['plant_type'])) echo 'checked'; ?>
-                        > Perennial
-                    </label>
-
-                    <label><input type="checkbox" name="plant_type[]" form="filter-form" value="Annual"
-                        onchange = "this.form.submit()"
-                        <?php if(isset($_GET['plant_type']) && in_array('Annual', $_GET['plant_type'])) echo 'checked'; ?>
-                        > Annual
-                    </label>
-                </div>
             </div>
         </div>
 
@@ -308,7 +348,8 @@ function resolvePlantImage($fileName)
                             <small><?php echo escape($row['plant_type']); ?></small>
                             <p><?php echo escape($row['plant_desc']); ?></p>
                             <div class="info">☀️ <?php echo escape($row['sun_level']); ?></div>
-                            <div class="info">🗓️ Planting window: <?php echo escape(formatPlantingWindow($row['start_plant'], $row['end_plant'])); ?></div>
+                            <div class="info">🗓️ Planting Window: <?php echo escape(formatPlantingWindow($row['start_plant'], $row['end_plant'])); ?></div>
+                            <div class="info">🌻 Season: <?php echo escape($row['planting_season'] ?: 'No listed season'); ?></div>
                             <div class="info">🐞 Insects: <?php echo escape($row['pests'] ?: 'No listed pests'); ?></div>
                         </div>
                     </div>

@@ -49,16 +49,13 @@ body {
 .filter-title {
   display: block;
   margin-bottom: 10px;
-  font-size: 16px;
-  /* text-decoration: underline; 
-            text-underline-offset: 3px;" */
+  font-size: 14px;
 }
 
 .sidebar h3 {
   margin-bottom: 15px;
   color: #FFF;
-  
-  font-size: 22px;
+  font-size: 18px;
   text-align: center;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -72,7 +69,7 @@ body {
   display: block;
   font-weight: bold;
   margin-bottom: 5px;
-  font-size: 16px;
+  font-size: 12px;
   cursor: pointer;
 }
 
