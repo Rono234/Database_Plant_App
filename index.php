@@ -83,7 +83,7 @@ if(isset($_GET['season']) && !empty($_GET['season'])){
     $q .= " HAVING planting_season IN ('$season_array')";
 }
 
-$q .= " ORDER BY p.plant_name";
+$q .= " ORDER BY RAND()";
 
 $result = mysqli_query($con, $q) or die("Query failed: " . mysqli_error($con));
 
