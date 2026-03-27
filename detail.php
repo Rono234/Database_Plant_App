@@ -255,12 +255,12 @@ if ($plantId > 0) {
 				<section class="detail-table-wrap">
 					<h2>Plant Data (its ugly ik ill make it prettier later)</h2>
 					<table class="detail-table">
-						<tr><th>plant name</th><td><?php echo escape($plant['plant_name']); ?></td></tr>
-						<tr><th>plant type</th><td><?php echo escape($plant['plant_type']); ?></td></tr>
-						<tr><th>plant description</th><td><?php echo escape($plant['plant_desc']); ?></td></tr>
-						<tr><th>sun level</th><td><?php echo escape($plant['sun_level']); ?></td></tr>
-						<tr><th>season</th><td><?php echo escape($plant['planting_season']); ?></td></tr>
-						<tr><th>difficulty</th><td><?php echo escape($plant['difficulty']); ?></td></tr>
+						<tr><th>Name:</th><td><?php echo escape($plant['plant_name']); ?></td></tr>
+						<tr><th>Type:</th><td><?php echo escape($plant['plant_type']); ?></td></tr>
+						<tr><th>Description:</th><td><?php echo escape($plant['plant_desc']); ?></td></tr>
+						<tr><th>Sun Level:</th><td><?php echo escape($plant['sun_level']); ?></td></tr>
+						<tr><th>Season:</th><td><?php echo escape($plant['planting_season']); ?></td></tr>
+						<tr><th>Difficulty:</th><td><?php echo escape($plant['difficulty']); ?></td></tr>
 					</table>
 				</section>
 			<?php } ?>

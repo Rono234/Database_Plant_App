@@ -37,6 +37,20 @@ body {
   color: #fff;
   top: 0;
   left: 0;
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #b4c4a8;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #7a8a70;
+    border: 2px solid #99a78d;
+    border-radius: 10px;
+  }
+
+  overflow-x: hidden;
 }
 
 .filter-section {
