@@ -470,3 +470,31 @@ body.detail-page {
     margin-bottom: 8px;
   }
 }
+
+.new-post{
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  background: var(--pink);
+  color: var(--off-white);
+  font-size: 65px;
+  cursor: pointer;
+  border: 5px solid #C47B77;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  margin-bottom: 15px;
+  margin-right: 15px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.20);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.new-post:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+  }

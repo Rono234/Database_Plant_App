@@ -119,7 +119,7 @@ function resolvePostImage($fileName)
                 <div class="tabs">
                     <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>
                     <a href="community.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'community.php' ? 'active' : ''; ?>">Community</a>
-                    <button class="new-post">+ New Post</button>
+                    <button class="new-post">+</button>
                 </div>
             </div>
 
