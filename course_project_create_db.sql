@@ -70,7 +70,7 @@ CREATE TABLE plants_pests
 CREATE TABLE users
 (
 	user_id			INT			AUTO_INCREMENT NOT NULL,
-    user_name		VARCHAR(50)	NOT NULL,
+    user_name		VARCHAR(50)	UNIQUE NOT NULL,
     CONSTRAINT	users_pk
 		PRIMARY KEY (user_id)
 );
@@ -82,7 +82,7 @@ CREATE TABLE posts
     body			VARCHAR(255)	NOT NULL,
     user_id			INT				NOT NULL,
     post_date		DATE			NOT NULL,
-    post_img		VARCHAR(50),
+    post_img		VARCHAR(255),
     CONSTRAINT posts_pk
 		PRIMARY KEY (post_id),
 	CONSTRAINT posts_users_fk

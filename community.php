@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 include('db_connection.php');
 
 $conditions = [];
@@ -115,7 +118,7 @@ function resolvePostImage($fileName)
         <!-- HEADER -->
         <div class="header">
             <div class="header-top">
-                <div class="logo">🌸 blossom</div>
+                <div class="logo">🌸 Blossom</div>
                 <div class="tabs">
                     <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>
                     <a href="community.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'community.php' ? 'active' : ''; ?>">Community</a>
@@ -156,11 +159,47 @@ function resolvePostImage($fileName)
                     No posts were found in the database.
                 </div>
             <?php } ?>
-
         </div>
 
     </div>
+    <div id="modalOverlay" class="modal">
+        <div class="modal-content">
+            <h2>Create New Post</h2>
+            <form id="post-form" method="POST" action="post.php" enctype="multipart/form-data">
+                <label for="title">Post Title:</label>
+                <input type="text" name="title" placeholder="What do would you like to title the post?" required>
 
+                <label for="user">Username:</label>
+                <input type="text" name="user" placeholder="Write your username here: " required>
+
+                <label for="body">Body:</label>
+                <textarea type="text" name="body" placeholder="Write your post here:" required></textarea>
+
+                <label for="post-image">Post Image:</label>
+                <input type="file" name="post_img" accept="image/*">
+
+                <div id="modal-buttons">
+                    <button type="button" id="cancel-post">Cancel</button>
+                    <button type="submit" id="submit-post">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
+
+<script>
+    const newPostBtn = document.querySelector('.new-post');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const cancelPostBtn = document.getElementById('cancel-post');
+
+    newPostBtn.addEventListener('click', () => {
+        modalOverlay.classList.add('open');
+    });
+
+    cancelPostBtn.addEventListener('click', () => {
+        modalOverlay.classList.remove('open');
+    })
+
+</script>
 
 </html>

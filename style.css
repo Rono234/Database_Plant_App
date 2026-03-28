@@ -49,7 +49,6 @@ body {
     border: 2px solid #99a78d;
     border-radius: 10px;
   }
-
   overflow-x: hidden;
 }
 
@@ -497,4 +496,127 @@ body.detail-page {
   transform: translateY(-6px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
   transition: all 0.3s ease;
-  }
+}
+
+.modal{
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.open{
+  display: flex;
+}
+
+.modal-content{
+  background: var(--off-white);
+  padding: 30px;
+  border-radius: 20px;
+  border: 3px solid var(--pink);
+  width: 90%;
+  max-width: 700px;
+  max-height: 600px;
+  height: 80vh;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-content h2{
+  margin-bottom: 20px;
+}
+
+.modal-content textarea{
+  width: 100%;
+  height: 150px;
+  flex-shrink: 0;
+  resize: vertical;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  font-family: inherit;
+}
+
+.modal-content input{
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  font-family: inherit;
+}
+
+.modal-content label{
+  display: block;
+  font-weight: bold;
+  margin-bottom: -5px;
+}
+
+#post-form{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  overflow-y: auto;
+  height: 100%;
+  /* padding-left: 10px; */
+  padding-right: 15px;
+  overflow-x: hidden;
+}
+
+#post-form::-webkit-scrollbar {
+  width: 6px;
+  border-radius: 20px;
+}
+
+#post-form::-webkit-scrollbar-track {
+  background: #c4a8b0;
+  border-radius: 20px;
+}
+
+#post-form::-webkit-scrollbar-thumb {
+  background-color: #8a707a;
+  border: 2px solid #a78d94;
+  border-radius: 20px;
+}
+
+#modal-buttons{
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+#cancel-post, #submit-post{
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#cancel-post:hover, #submit-post:hover{
+  opacity: 0.3;
+}
+
+#cancel-post{
+  background: #6e0404;
+  color: var(--off-white);
+}
+
+#submit-post{
+  background: var(--green);
+  color: var(--off-white);
+}
