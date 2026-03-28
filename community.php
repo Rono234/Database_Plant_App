@@ -175,8 +175,10 @@ function resolvePostImage($fileName)
                 <label for="body">Body:</label>
                 <textarea type="text" name="body" placeholder="Write your post here:" required></textarea>
 
-                <label for="post-image">Post Image:</label>
-                <input type="file" name="post_img" accept="image/*">
+                <label for="post_img" class="post_img">
+                    <i class="fa fa-cloud-upload"></i>Post Image:
+                </label>
+                <input type="file" name="post_img" id="post_img" accept="image/*">
 
                 <div id="modal-buttons">
                     <button type="button" id="cancel-post">Cancel</button>
