@@ -111,6 +111,7 @@ if ($plantId > 0) {
 		s.end_plant,
 		GROUP_CONCAT(DISTINCT c.category_name ORDER BY c.category_name SEPARATOR ', ') AS categories,
 		GROUP_CONCAT(DISTINCT pe.pest_name ORDER BY pe.pest_name SEPARATOR ', ') AS pests,
+		
 		CASE
 		WHEN s.start_plant IN (12, 1, 2) THEN 'Winter'
 		WHEN s.start_plant BETWEEN 3 and 5 THEN 'Spring'
@@ -118,14 +119,16 @@ if ($plantId > 0) {
 		WHEN s.start_plant BETWEEN 9 and 11 THEN 'Fall'
 		ELSE 'Unknown'
 		END AS planting_season
-	FROM plants AS p
-	INNER JOIN seasons AS s ON p.season_id = s.season_id
-	LEFT JOIN plants_categories AS pc ON p.plant_id = pc.plant_id
-	LEFT JOIN categories AS c ON pc.category_id = c.category_id
-	LEFT JOIN plants_pests AS pp ON p.plant_id = pp.plant_id
-	LEFT JOIN pests AS pe ON pp.pest_id = pe.pest_id
-	WHERE p.plant_id = $plantId
-	GROUP BY
+		
+		FROM plants AS p
+		INNER JOIN seasons AS s ON p.season_id = s.season_id
+		LEFT JOIN plants_categories AS pc ON p.plant_id = pc.plant_id
+		LEFT JOIN categories AS c ON pc.category_id = c.category_id
+		LEFT JOIN plants_pests AS pp ON p.plant_id = pp.plant_id
+		LEFT JOIN pests AS pe ON pp.pest_id = pe.pest_id
+		WHERE p.plant_id = $plantId
+		
+		GROUP BY
 		p.plant_id,
 		p.plant_name,
 		p.plant_type,
@@ -296,8 +299,16 @@ if ($plantId > 0) {
 					<div class="empty-state">No comments yet for this <?php echo $pageType === 'post' ? 'post' : 'plant'; ?>.</div>
 				<?php } ?>
 			</section>
+
+			<section class="edit-post">
+				<a>Edit Post</a>
+			</section>
+
+			<section class="delete-post">
+				<a>Delete Post</a>
+			</section>
 		<?php } ?>
-	</div>
+	</div>`
 </body>
 
 </html>

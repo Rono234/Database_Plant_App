@@ -9,7 +9,17 @@ $conditions = [];
 // Basic search functionality for posts and users using the name
 if(isset($_GET['search']) && !empty($_GET['search'])) {
     $search = mysqli_real_escape_string($con, $_GET['search']);
-    $conditions[] = "pt.title LIKE '%$search%' OR u.user_name LIKE '%$search%'";
+    $conditions[] = "(pt.title LIKE '%$search%' OR u.user_name LIKE '%$search%')";
+}
+
+// User filter functionality
+if(isset($_GET['user_name']) && !empty($_GET['user_name'])){
+    $user_name_security = 
+        array_map(function($un) use ($con){
+            return mysqli_real_escape_string($con, $un);
+        }, $_GET['user_name']);
+    $un_array = implode("','", $user_name_security);
+    $conditions[] = "u.user_name IN ('$un_array') ";
 }
 
 // Putting together the queries
@@ -22,7 +32,7 @@ if (!empty($conditions)) {
 }
 
 $q .= " GROUP BY pt.post_id, pt.title, pt.body, pt.post_date, pt.post_img, u.user_name
-        ORDER BY pt.post_date DESC";
+        ORDER BY RAND()";
 
 $result = mysqli_query($con, $q) or die("Query failed: " . mysqli_error($con));
 
@@ -82,32 +92,24 @@ function resolvePostImage($fileName)
     <!-- SIDEBAR -->
     <div class="sidebar">
         <h3>Filters:</h3>
-
         <div class="filter-section">
             <div class="filter-group">
-                <strong class="filter-title">Light:</strong>
-                <label><input type="checkbox"> Full Sun</label>
-                <label><input type="checkbox"> Partial Sun</label>
-                <label><input type="checkbox"> Shade</label>
-            </div>
-
-            <div class="filter-group">
-                <strong class="filter-title">Pest:</strong>
-                <label><input type="checkbox"> Ladybugs</label>
-                <label><input type="checkbox"> Beetles</label>
-            </div>
-
-            <div class="filter-group">
-                <strong class="filter-title">Difficulty:</strong>
-                <label><input type="checkbox"> Easy</label>
-                <label><input type="checkbox"> Medium</label>
-                <label><input type="checkbox"> Hard</label>
-            </div>
-
-            <div class="filter-group">
-                <strong class="filter-title">Type:</strong>
-                <label><input type="checkbox"> Perennial</label>
-                <label><input type="checkbox"> Annual</label>
+                <details class="filter-group" data-filter-group="user">
+                <summary>
+                    <strong class="filter-title">User:</strong>
+                    <button class="filter-toggle" type="button" aria-label="Toggle User filter"></button>
+                </summary>
+                    <?php
+                        $user_query = "SELECT DISTINCT user_name FROM users ORDER BY user_name";
+                        $user_result= mysqli_query($con, $user_query) or die("Query failed: " . mysqli_error($con));
+                        
+                        while ($user_row = mysqli_fetch_assoc($user_result)){
+                            $user_name = $user_row['user_name'];
+                            $checked = isset($_GET['user_name']) && in_array($user_name, $_GET['user_name']) ? 'checked' : '';
+                            echo '<label><input type="checkbox" name="user_name[]" form="filter-form" value="' . escape($user_name) . '" onchange="this.form.submit()" ' . $checked . '> ' . escape($user_name) . '</label>';
+                        }
+                    ?>
+                </details>
             </div>
         </div>
     </div>
@@ -142,14 +144,19 @@ function resolvePostImage($fileName)
             <?php if (mysqli_num_rows($result) > 0) { ?>
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                     <a class="card-link" href="detail.php?post_id=<?php echo (int) $row['post_id']; ?>">
-                        <div class="card" style="margin-bottom: 10px;">
-                            <img src="<?php echo escape(resolvePostImage($row['post_img'])); ?>"
-                                alt="<?php echo escape($row['title']); ?>">
-                            <div class="card-content">
-                                <h3><?php echo escape($row['title']); ?></h3>
-                                <small><?php echo escape($row['user_name']); ?></small>
-                                <p><?php echo escape($row['body']); ?></p>
-                                <div class="info">🗓️ Posted on: <?php echo escape($row['post_date']); ?></div>
+                        <div class="community-container">
+                            <div class="card" style="margin-bottom: 10px;">
+                                <?php if (!empty($row['post_img'])): ?>
+                                    <img src="<?php echo escape(resolvePostImage($row['post_img'])); ?>"
+                                        alt="<?php echo escape($row['title']); ?>">
+                                <?php endif; ?>
+
+                                <div class="card-content">
+                                    <h3><?php echo escape($row['title']); ?></h3>
+                                    <small><?php echo escape($row['user_name']); ?></small>
+                                    <p><?php echo escape($row['body']); ?></p>
+                                    <div class="info">🗓️ Posted on: <?php echo escape($row['post_date']); ?></div>
+                                </div>
                             </div>
                         </div>
                     </a>
@@ -187,21 +194,86 @@ function resolvePostImage($fileName)
             </form>
         </div>
     </div>
+
+    <script>
+        const newPostBtn = document.querySelector('.new-post');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const cancelPostBtn = document.getElementById('cancel-post');
+
+        newPostBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('open');
+        });
+
+        cancelPostBtn.addEventListener('click', () => {
+            modalOverlay.classList.remove('open');
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+        var storageKey = 'blossom-open-filters';
+        var filterForm = document.getElementById('filter-form');
+        var filterGroups = Array.from(document.querySelectorAll('.filter-group[data-filter-group]'));
+
+            function saveOpenGroups() {
+                var openGroups = filterGroups
+                    .filter(function (group) {
+                        return group.open;
+                    })
+                    .map(function (group) {
+                        return group.dataset.filterGroup;
+                    });
+
+                sessionStorage.setItem(storageKey, JSON.stringify(openGroups));
+            }
+
+            function restoreOpenGroups() {
+                var savedState = sessionStorage.getItem(storageKey);
+
+                if (!savedState) {
+                    return;
+                }
+
+                try {
+                    var openGroups = JSON.parse(savedState);
+
+                    filterGroups.forEach(function (group) {
+                        group.open = openGroups.indexOf(group.dataset.filterGroup) !== -1;
+                    });
+                } catch (error) {
+                    sessionStorage.removeItem(storageKey);
+                }
+            }
+
+            restoreOpenGroups();
+
+            filterGroups.forEach(function (group) {
+                var summary = group.querySelector('summary');
+                var toggle = group.querySelector('.filter-toggle');
+
+                summary.addEventListener('click', function (event) {
+                    if (!event.target.closest('.filter-toggle')) {
+                        event.preventDefault();
+                    }
+                });
+
+                summary.addEventListener('keydown', function (event) {
+                    if ((event.key === 'Enter' || event.key === ' ') && event.target === summary) {
+                        event.preventDefault();
+                    }
+                });
+
+                toggle.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    group.open = !group.open;
+                    saveOpenGroups();
+                });
+
+                group.addEventListener('toggle', saveOpenGroups);
+            });
+
+            if (filterForm) {
+                filterForm.addEventListener('submit', saveOpenGroups);
+            }
+        });
+    </script>
 </body>
-
-<script>
-    const newPostBtn = document.querySelector('.new-post');
-    const modalOverlay = document.getElementById('modalOverlay');
-    const cancelPostBtn = document.getElementById('cancel-post');
-
-    newPostBtn.addEventListener('click', () => {
-        modalOverlay.classList.add('open');
-    });
-
-    cancelPostBtn.addEventListener('click', () => {
-        modalOverlay.classList.remove('open');
-    })
-
-</script>
-
 </html>
