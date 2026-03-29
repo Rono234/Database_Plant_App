@@ -1,6 +1,8 @@
 <?php
 include('db_connection.php');
 
+$post_id = $_GET['post_id'];
+
 function escape($value)
 {
 	return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -300,20 +302,100 @@ if ($plantId > 0) {
 				<?php } ?>
 			</section>
 
-			<section class="post-controls">
-				<div class="control-item">
-					<a href="edit.php?id=<?php echo $post_id;?>" class="edit_btn">Edit Post</a>
-				</div>
+			<?php
+			$current_page = isset($_GET['type']) ? $_GET['type'] : '';
+			
+			if($current_page == 'community') {?>
+				<section class="post-controls">
+					<div class="control-item">
+						<form action="edit.php" method="POST" enctype="multipart/form-data">
+							<button type="button" class="edit_btn" id="open-edit-modal">Edit Post</button>
+						</form>
+					</div>
 
-				<div class="control-item">
-					<form action="delete.php" method="POST" onsubmit="return confirm('Are you sure you want to delete the post?');">
-						<input type="hidden" name="post_id" value="<?php echo $post_id;?>">
-						<button type="submit" name="delete_btn" class="delete_btn">Delete Post</button>
-					</form>
-				</div>
-			</section>
+					<div class="control-item">
+						<form action="delete.php" method="POST" onsubmit="return confirm('Are you sure you want to delete the post?');">
+							<input type="hidden" name="post_id" value="<?php echo $post_id;?>">
+							<button type="submit" name="delete_btn" class="delete_btn">Delete Post</button>
+						</form>
+					</div>
+				</section>
+			<?php }?>
 		<?php } ?>
-	</div>`
-</body>
+	</div>
+	
+	<div id="editModalOverlay" class="modal">
+        <div class="modal-content">
+            <h2>Update Your Post Below</h2>
+            <form id="post-form" method="POST" action="edit.php" enctype="multipart/form-data">
+				<input type="hidden" name="post_id" value="<?php echo $post_id;?>">
 
+                <label for="title">Update Title:</label>
+                <input type="text" name="title" value="<?php echo $post['title'];?>" required>
+
+                <label for="user">Update Username:</label>
+                <input type="text" name="user" value="<?php echo $post['user_name'];?>" required>
+
+                <label for="body">Update Body:</label>
+                <textarea type="text" name="body" required><?php echo $post['body'];?></textarea>
+
+                <label for="post_img" class="post_img">
+                    <i class="fa fa-cloud-upload"></i>Update Image:
+                </label>
+                <input type="file" name="post_img" id="post_img" accept="image/*">
+				<input type="hidden" name="existing_img" value="<?php echo $post['post_img'];?>">
+				<div class="remove_img">
+					<input type="checkbox" name="remove_img" id="remove_img" value="yes"">
+					<label for="remove_img">Remove Image</label>
+				</div>
+
+                <div id="modal-buttons">
+                    <button type="button" id="cancel-post">Cancel</button>
+                    <button type="submit" id="submit-post">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+	
+	<script>
+        const editBtn = document.querySelector('.edit_btn');
+        const editModalOverlay = document.getElementById('editModalOverlay');
+        const cancelPostBtn = document.getElementById('cancel-post');
+
+		const fileInput = document.getElementById('post_img');
+		const fileLabel = document.querySelector('.post_img');
+
+		const remove = document.getElementById('remove_img');
+
+        editBtn.addEventListener('click', () => {
+            editModalOverlay.classList.add('open');
+        });
+
+        cancelPostBtn.addEventListener('click', () => {
+            editModalOverlay.classList.remove('open');
+        });
+
+		fileInput.addEventListener('change', function() {
+			if(this.files && this.files.length > 0){
+				fileLabel.innerHTML = '<i class="fa fa-check"></i>' + this.files[0].name;
+				fileLabel.style.color = "#4CAF50";
+			}
+		});
+
+		remove.addEventListener('change', function(){
+			if(this.checked){
+				fileInput.value = '';
+				fileLabel.style.pointerEvents = "none";
+				fileLabel.style.opacity = '0.5';
+				fileLabel.innerHTML = '<i class="fa fa-trash"></i>Image will be removed!';
+				fileLabel.style.color = "#e74c3c"
+			} else {
+				fileLabel.innerHTML = '<i class="fa fa-cloud-upload"></i>Update Image:';
+				fileLabel.style.color = ""
+				fileLabel.style.pointerEvents = "auto";
+				fileLabel.style.opacity = '1';
+			}
+		});
+	</script>
+</body>
 </html>

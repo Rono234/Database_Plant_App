@@ -143,7 +143,7 @@ function resolvePostImage($fileName)
         <div class="grid">
             <?php if (mysqli_num_rows($result) > 0) { ?>
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <a class="card-link" href="detail.php?post_id=<?php echo (int) $row['post_id']; ?>">
+                    <a class="card-link" href="detail.php?post_id=<?php echo (int)$row['post_id']; ?>&type=community">
                         <div class="community-container">
                             <div class="card" style="margin-bottom: 10px;">
                                 <?php if (!empty($row['post_img'])): ?>

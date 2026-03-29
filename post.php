@@ -31,9 +31,6 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
     if (mysqli_query($con, $q)) {
         header("Location: community.php");
         exit();
-    } else {
-        // This line is key. It will stop the page and tell you the ERROR.
-        die("STOP! Database Error: " . mysqli_error($con));
     }
 }
 ?>

@@ -701,3 +701,26 @@ label.post_img:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(255, 173, 173, 0.3);
 }
+
+.remove_img{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%
+}
+
+.remove_img input[type="checkbox"]{
+  display: inline-block !important;
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.remove_img label{
+  cursor: pointer;
+  display: inline-block !important;
+  white-space: nowrap;
+  margin: 0 !important;
+}
