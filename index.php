@@ -117,7 +117,7 @@ function escape($value)
 
 function resolvePlantImage($fileName)
 {
-    $name = trim((string) $fileName);
+    $name = TRIM((string) $fileName);
     if ($name === '') {
         return 'https://placehold.co/600x400/F6E5E7/828C6A?text=Plant';
     }
@@ -351,7 +351,7 @@ function resolvePlantImage($fileName)
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                     <a class="card-link" href="detail.php?plant_id=<?php echo (int) $row['plant_id']; ?>">
                         <div class="card" style="margin-bottom: 10px;">
-                            <div class="tag"><?php echo escape(strtolower(trim($row['difficulty']))); ?></div>
+                            <div class="tag"><?php echo escape(strtolower(TRIM($row['difficulty']))); ?></div>
                             <img src="<?php echo escape(resolvePlantImage($row['plant_img'])); ?>" alt="<?php echo escape($row['plant_name']); ?>">
                             <div class="card-content">
                                 <h3><?php echo escape($row['plant_name']); ?></h3>

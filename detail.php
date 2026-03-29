@@ -10,7 +10,7 @@ function escape($value)
 
 function resolvePlantImage($fileName)
 {
-	$name = trim((string) $fileName);
+	$name = TRIM((string) $fileName);
 	if ($name === '') {
 		return 'https://placehold.co/1200x600/F6E5E7/828C6A?text=Plant';
 	}
@@ -39,7 +39,7 @@ function resolvePlantImage($fileName)
 
 function resolvePostImage($fileName)
 {
-	$name = trim((string) $fileName);
+	$name = TRIM((string) $fileName);
 	if ($name === '') {
 		return 'https://placehold.co/1200x600/F6E5E7/828C6A?text=Post';
 	}

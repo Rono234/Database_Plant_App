@@ -6,7 +6,7 @@ include('db_connection.php');
 
 if($_SERVER['REQUEST_METHOD'] == "POST"){
     $post_id = mysqli_real_escape_string($con, ($_POST['post_id']));
-    $typed_user = mysqli_real_escape_string($con, trim($_POST['user']));
+    $typed_user = mysqli_real_escape_string($con, TRIM($_POST['user']));
     $user_q = "INSERT IGNORE INTO users (user_name) VALUES ('$typed_user')";
     mysqli_query($con, $user_q);
 
@@ -14,8 +14,8 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
     $user_data = mysqli_fetch_assoc($check_user_q);
     $user_id = $user_data['user_id'];
 
-    $newTitle = mysqli_real_escape_string($con, trim($_POST['title']));
-    $newBody = mysqli_real_escape_string($con, trim($_POST['body']));
+    $newTitle = mysqli_real_escape_string($con, TRIM($_POST['title']));
+    $newBody = mysqli_real_escape_string($con, TRIM($_POST['body']));
     $newImage = isset($_POST['existing_img']) ? $_POST['existing_img'] : '';
 
     if(isset($_POST['remove_img']) && $_POST['remove_img'] == 'yes'){

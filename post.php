@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 include('db_connection.php');
 
 if($_SERVER['REQUEST_METHOD'] == "POST"){
-    $typed_user = mysqli_real_escape_string($con, trim($_POST['user']));
+    $typed_user = mysqli_real_escape_string($con, TRIM($_POST['user']));
     $user_q = "INSERT IGNORE INTO users (user_name) VALUES ('$typed_user')";
     mysqli_query($con, $user_q);
 
@@ -13,8 +13,8 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
     $user_data = mysqli_fetch_assoc($check_user_q);
     $user_id = $user_data['user_id'];
 
-    $title = mysqli_real_escape_string($con, trim($_POST['title']));
-    $body = mysqli_real_escape_string($con, trim($_POST['body']));
+    $title = mysqli_real_escape_string($con, TRIM($_POST['title']));
+    $body = mysqli_real_escape_string($con, TRIM($_POST['body']));
     $image = '';
 
     if(isset($_FILES['post_img']) && $_FILES['post_img']['error'] !== UPLOAD_ERR_NO_FILE){

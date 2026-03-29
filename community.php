@@ -43,7 +43,7 @@ function escape($value)
 
 function resolvePostImage($fileName)
 {
-    $name = trim((string) $fileName);
+    $name = TRIM((string) $fileName);
     if ($name === '') {
         return 'https://placehold.co/600x400/F6E5E7/828C6A?text=Post';
     }
