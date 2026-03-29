@@ -300,12 +300,17 @@ if ($plantId > 0) {
 				<?php } ?>
 			</section>
 
-			<section class="edit-post">
-				<a>Edit Post</a>
-			</section>
+			<section class="post-controls">
+				<div class="control-item">
+					<a href="edit.php?id=<?php echo $post_id;?>" class="edit_btn">Edit Post</a>
+				</div>
 
-			<section class="delete-post">
-				<a>Delete Post</a>
+				<div class="control-item">
+					<form action="delete.php" method="POST" onsubmit="return confirm('Are you sure you want to delete the post?');">
+						<input type="hidden" name="post_id" value="<?php echo $post_id;?>">
+						<button type="submit" name="delete_btn" class="delete_btn">Delete Post</button>
+					</form>
+				</div>
 			</section>
 		<?php } ?>
 	</div>`
