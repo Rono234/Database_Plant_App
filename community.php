@@ -100,7 +100,7 @@ function resolvePostImage($fileName)
                     <button class="filter-toggle" type="button" aria-label="Toggle User filter"></button>
                 </summary>
                     <?php
-                        $user_query = "SELECT DISTINCT user_name FROM users ORDER BY user_name";
+                        $user_query = "SELECT DISTINCT u.user_name FROM users u JOIN posts p ON u.user_id = p.user_id ORDER BY user_name";
                         $user_result= mysqli_query($con, $user_query) or die("Query failed: " . mysqli_error($con));
                         
                         while ($user_row = mysqli_fetch_assoc($user_result)){
@@ -199,6 +199,9 @@ function resolvePostImage($fileName)
         const newPostBtn = document.querySelector('.new-post');
         const modalOverlay = document.getElementById('modalOverlay');
         const cancelPostBtn = document.getElementById('cancel-post');
+        
+        const fileInput = document.getElementById('post_img');
+		const fileLabel = document.querySelector('.post_img');
 
         newPostBtn.addEventListener('click', () => {
             modalOverlay.classList.add('open');
@@ -207,6 +210,13 @@ function resolvePostImage($fileName)
         cancelPostBtn.addEventListener('click', () => {
             modalOverlay.classList.remove('open');
         });
+
+        fileInput.addEventListener('change', function() {
+			if(this.files && this.files.length > 0){
+				fileLabel.innerHTML = '<i class="fa fa-check"></i>' + this.files[0].name;
+				fileLabel.style.color = "#4CAF50";
+			}
+		});
 
         document.addEventListener('DOMContentLoaded', function () {
         var storageKey = 'blossom-open-filters';
