@@ -211,6 +211,7 @@ if ($plantId > 0) {
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Blossom Details</title>
+	<link rel="icon" type="image/png" href="images/favicon.png">
 	<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond" rel="stylesheet">
 	<link rel="stylesheet" href="style.css">
@@ -220,7 +221,9 @@ if ($plantId > 0) {
 	<div class="detail-layout">
 		<div class="header detail-header">
 			<div class="header-top">
-				<div class="logo">🌸 Blossom</div>
+				<div class="logo" style="display: flex; align-items: center;">
+                    <img src="images/favicon.png" alt="Blossom" style="width: 30px; height: 30px; margin-right: 5px;">Blossom
+                </div>
 				<div class="tabs">
 					<a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>
 					<a href="community.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'community.php' ? 'active' : ''; ?>">Community</a>

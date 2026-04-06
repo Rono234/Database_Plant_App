@@ -162,6 +162,10 @@ body {
   color: #fff;
 }
 
+.logo img{
+  vertical-align: middle;
+}
+
 .tabs a {
   text-decoration: none;
   background: rgba(255, 255, 255, 0.6);
