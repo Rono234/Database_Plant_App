@@ -206,11 +206,11 @@ body {
   padding: 0;
 }
 
-/* GRID */
+/* GRID - Masonry Layout */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  column-count: auto;
+  column-width: 280px;
+  column-gap: 20px;
 }
 
 .empty-state {
@@ -229,6 +229,7 @@ body {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s;
   position: relative;
+  width: 100%;
 }
 
 .card:hover {
@@ -238,6 +239,10 @@ body {
 .card-link {
   text-decoration: none;
   color: inherit;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 20px;
+  break-inside: avoid;
 }
 
 .card-link:focus-visible .card {
@@ -434,6 +439,31 @@ body.detail-page {
   color: #5f6750;
   font-weight: 600;
   margin-top: 8px;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    column-width: 240px;
+    column-count: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    column-count: 2;
+    column-width: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    column-count: 1;
+    column-gap: 0;
+  }
+
+  .card-link {
+    margin-bottom: 16px;
+  }
 }
 
 @media (max-width: 900px) {

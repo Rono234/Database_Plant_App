@@ -149,7 +149,7 @@ function resolvePostImage($fileName)
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                     <a class="card-link" href="detail.php?post_id=<?php echo (int)$row['post_id']; ?>&type=community">
                         <div class="community-container">
-                            <div class="card" style="margin-bottom: 10px;">
+                            <div class="card">
                                 <?php if (!empty($row['post_img'])): ?>
                                     <img src="<?php echo escape(resolvePostImage($row['post_img'])); ?>"
                                         alt="<?php echo escape($row['title']); ?>">

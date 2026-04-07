@@ -1,7 +1,7 @@
 <?php
 include('db_connection.php');
 
-$post_id = $_GET['post_id'];
+// $post_id = $_GET['post_id'];
 
 function escape($value)
 {
@@ -261,7 +261,7 @@ if ($plantId > 0) {
 				</section>
 
 				<section class="detail-table-wrap">
-					<h2>Plant Data (its ugly ik ill make it prettier later)</h2>
+					<h2>Plant Data</h2>
 					<table class="detail-table">
 						<tr><th>Name:</th><td><?php echo escape($plant['plant_name']); ?></td></tr>
 						<tr><th>Type:</th><td><?php echo escape($plant['plant_type']); ?></td></tr>
