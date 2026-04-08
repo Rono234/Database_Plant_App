@@ -331,7 +331,7 @@ function resolvePlantImage($fileName)
             <div class="header">
                 <div class="header-top">
                     <div class="logo" style="display: flex; align-items: center;">
-                        <img src="images/favicon.png" alt="Blossom" style="width: 30px; height: 30px; margin-right: 5px;">Blossom
+                        <img src="images/favicon.png" alt="Blossom">Blossom
                     </div>
                     <div class="tabs">
                         <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>

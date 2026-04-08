@@ -89,6 +89,7 @@ function getRatingSummary($con, $columnName, $itemId)
 
 $plantId = isset($_GET['plant_id']) ? (int) $_GET['plant_id'] : 0;
 $postId = isset($_GET['post_id']) ? (int) $_GET['post_id'] : 0;
+$currentPageTypeParam = isset($_GET['type']) ? (string) $_GET['type'] : '';
 
 $plant = null;
 $post = null;
@@ -96,6 +97,61 @@ $comments = array();
 $ratingSummary = array('avg_rating' => null, 'rating_count' => 0);
 $pageType = '';
 $errorMessage = '';
+$formMessage = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_comment'])) {
+	$postedType = isset($_POST['target_type']) ? trim((string) $_POST['target_type']) : '';
+	$postedId = isset($_POST['target_id']) ? (int) $_POST['target_id'] : 0;
+	$userName = isset($_POST['comment_user']) ? trim((string) $_POST['comment_user']) : '';
+	$commentText = isset($_POST['comment_text']) ? trim((string) $_POST['comment_text']) : '';
+	$rating = isset($_POST['rating']) ? (int) $_POST['rating'] : 0;
+	$returnType = isset($_POST['return_type']) ? trim((string) $_POST['return_type']) : '';
+
+	if (($postedType === 'plant' || $postedType === 'post') && $postedId > 0 && $userName !== '' && $commentText !== '' && $rating >= 1 && $rating <= 5) {
+		$escapedUser = mysqli_real_escape_string($con, $userName);
+		mysqli_query($con, "INSERT IGNORE INTO users (user_name) VALUES ('$escapedUser')");
+
+		$userResult = mysqli_query($con, "SELECT user_id FROM users WHERE user_name = '$escapedUser' LIMIT 1");
+		$userData = $userResult ? mysqli_fetch_assoc($userResult) : null;
+		$userId = $userData ? (int) $userData['user_id'] : 0;
+
+		if ($userId > 0) {
+			if ($postedType === 'plant') {
+				$stmt = mysqli_prepare(
+					$con,
+					"INSERT INTO comments (comment_text, rating, comment_date, plant_id, user_id)
+					 VALUES (?, ?, DATE(NOW()), ?, ?)"
+				);
+			} else {
+				$stmt = mysqli_prepare(
+					$con,
+					"INSERT INTO comments (comment_text, rating, comment_date, post_id, user_id)
+					 VALUES (?, ?, DATE(NOW()), ?, ?)"
+				);
+			}
+
+			if ($stmt) {
+				mysqli_stmt_bind_param($stmt, 'siii', $commentText, $rating, $postedId, $userId);
+				if (mysqli_stmt_execute($stmt)) {
+					$redirectUrl = 'detail.php?' . ($postedType === 'post' ? 'post_id=' : 'plant_id=') . $postedId;
+					if ($returnType === 'community') {
+						$redirectUrl .= '&type=community';
+					}
+					header('Location: ' . $redirectUrl);
+					exit;
+				}
+				$formMessage = 'Could not save your comment right now. Please try again.';
+				mysqli_stmt_close($stmt);
+			} else {
+				$formMessage = 'Comment service is unavailable right now.';
+			}
+		} else {
+			$formMessage = 'Please use a valid username.';
+		}
+	} else {
+		$formMessage = 'Please enter a username, comment, and a rating from 1 to 5.';
+	}
+}
 
 if ($plantId > 0) {
 	$pageType = 'plant';
@@ -215,6 +271,7 @@ if ($plantId > 0) {
 	<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond" rel="stylesheet">
 	<link rel="stylesheet" href="style.css">
+	<script src="app.js" defer></script>
 </head>
 
 <body class="detail-page">
@@ -222,7 +279,7 @@ if ($plantId > 0) {
 		<div class="header detail-header">
 			<div class="header-top">
 				<div class="logo" style="display: flex; align-items: center;">
-                    <img src="images/favicon.png" alt="Blossom" style="width: 30px; height: 30px; margin-right: 5px;">Blossom
+                    <img src="images/favicon.png" alt="Blossom">Blossom
                 </div>
 				<div class="tabs">
 					<a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>
@@ -235,78 +292,195 @@ if ($plantId > 0) {
 		<?php if ($errorMessage !== '') { ?>
 			<div class="empty-state"><?php echo escape($errorMessage); ?></div>
 		<?php } else { ?>
-			<section class="rating-summary">
-				<h2>Average Collective Rating</h2>
-				<p class="rating-value">
-					<?php if ($ratingSummary['avg_rating'] !== null) { ?>
-						<?php echo escape(number_format($ratingSummary['avg_rating'], 1)); ?>/5
-					<?php } else { ?>
-						No rating yet
-					<?php } ?>
-				</p>
-				<p class="rating-count"><?php echo escape($ratingSummary['rating_count']); ?> total rating(s)</p>
-			</section>
-
 			<?php if ($pageType === 'plant' && $plant) { ?>
-				<section class="detail-hero">
-					<img src="<?php echo escape(resolvePlantImage($plant['plant_img'])); ?>" alt="<?php echo escape($plant['plant_name']); ?>">
-					<div>
-						<h1><?php echo escape($plant['plant_name']); ?></h1>
-						<p><?php echo escape($plant['plant_desc']); ?></p>
-						<div class="detail-pill-row">
-							<span class="detail-pill">Category: <?php echo escape($plant['categories'] ?: 'None listed'); ?></span>
-							<span class="detail-pill">Pests: <?php echo escape($plant['pests'] ?: 'None listed'); ?></span>
-						</div>
-					</div>
-				</section>
+				<section class="plant-detail">
 
-				<section class="detail-table-wrap">
-					<h2>Plant Data</h2>
-					<table class="detail-table">
-						<tr><th>Name:</th><td><?php echo escape($plant['plant_name']); ?></td></tr>
-						<tr><th>Type:</th><td><?php echo escape($plant['plant_type']); ?></td></tr>
-						<tr><th>Description:</th><td><?php echo escape($plant['plant_desc']); ?></td></tr>
-						<tr><th>Sun Level:</th><td><?php echo escape($plant['sun_level']); ?></td></tr>
-						<tr><th>Season:</th><td><?php echo escape($plant['planting_season']); ?></td></tr>
-						<tr><th>Difficulty:</th><td><?php echo escape($plant['difficulty']); ?></td></tr>
-					</table>
+					<!-- LEFT: IMAGE -->
+					<div class="plant-image">
+						<img src="<?php echo escape(resolvePlantImage($plant['plant_img'])); ?>" alt="<?php echo escape($plant['plant_name']); ?>">
+					</div>
+
+					<!-- RIGHT: INFO -->
+					<div class="plant-info">
+
+						<div class="plant-header">
+							<div>
+								<h1><?php echo escape($plant['plant_name']); ?></h1>
+								<p class="plant-type"><?php echo escape($plant['plant_type']); ?></p>
+							</div>
+
+							<!-- TOP RIGHT RATING -->
+							<div class="avg-rating">
+								<?php echo $ratingSummary['avg_rating'] !== null 
+									? escape(number_format($ratingSummary['avg_rating'],1)) 
+									: '0'; ?>/5
+							</div>
+						</div>
+
+						<!-- CLICKABLE STARS -->
+						<!-- <div class="rating-input">
+							<span data-value="1">☆</span>
+							<span data-value="2">☆</span>
+							<span data-value="3">☆</span>
+							<span data-value="4">☆</span>
+							<span data-value="5">☆</span>
+						</div> -->
+
+						<p class="plant-desc"><?php echo escape($plant['plant_desc']); ?></p>
+
+						<!-- QUICK FACTS -->
+						<div class="quick-facts">
+							<h3>Quick Facts</h3>
+							<ul>
+								<li>🌱 Season: <?php echo escape($plant['planting_season']); ?></li>
+								<li>☀️ Sun: <?php echo escape($plant['sun_level']); ?></li>
+								<li>📦 Category: <?php echo escape($plant['categories']); ?></li>
+								<li>🐛 Pests: <?php echo escape($plant['pests']); ?></li>
+								<li>⭐ Difficulty: <?php echo escape($plant['difficulty']); ?></li>
+							</ul>
+						</div>
+
+					</div>
 				</section>
 			<?php } ?>
 
 			<?php if ($pageType === 'post' && $post) { ?>
-				<section class="detail-hero">
-					<img src="<?php echo escape(resolvePostImage($post['post_img'])); ?>" alt="<?php echo escape($post['title']); ?>">
-					<div>
-						<h1><?php echo escape($post['title']); ?></h1>
-						<p><?php echo escape($post['body']); ?></p>
-						<div class="detail-pill-row">
-							<span class="detail-pill">Posted by: <?php echo escape($post['user_name']); ?></span>
-							<span class="detail-pill">Date: <?php echo escape($post['post_date']); ?></span>
+				<?php 
+					$postImage = resolvePostImage($post['post_img']);
+					$hasImage = strpos($postImage, 'placehold') === false;
+				?>
+				
+				<?php if ($hasImage) { ?>
+					<!-- POST WITH IMAGE -->
+					<section class="plant-detail">
+						<div class="plant-image">
+							<img src="<?php echo escape($postImage); ?>" alt="<?php echo escape($post['title']); ?>">
 						</div>
-					</div>
-				</section>
+
+						<div class="plant-info">
+							<div class="post-content-box">
+								<h1><?php echo escape($post['title']); ?></h1>
+								<p class="post-body"><?php echo escape($post['body']); ?></p>
+
+								<div class="post-footer-divider"></div>
+
+								<div class="post-user-info post-user-info-spread">
+									<div class="post-user-meta">
+										<img src="https://ui-avatars.com/api/?name=<?php echo urlencode($post['user_name']); ?>&background=E69B97&color=fff" class="pfp" alt="<?php echo escape($post['user_name']); ?>">
+										<div>
+											<strong><?php echo escape($post['user_name']); ?></strong>
+											<p class="post-date"><?php echo escape($post['post_date']); ?></p>
+										</div>
+									</div>
+
+									<div class="avg-rating">
+										<?php echo $ratingSummary['avg_rating'] !== null
+											? escape(number_format($ratingSummary['avg_rating'], 1))
+											: '0'; ?>/5
+									</div>
+								</div>
+							</div>
+						</div>
+					</section>
+				<?php } else { ?>
+					<!-- POST WITHOUT IMAGE -->
+					<section class="post-text-only">
+						<div class="post-content-box">
+							<h1><?php echo escape($post['title']); ?></h1>
+							<p class="post-body"><?php echo escape($post['body']); ?></p>
+
+							<div class="post-footer-divider"></div>
+
+							<div class="post-user-info post-user-info-spread">
+								<div class="post-user-meta">
+									<img src="https://ui-avatars.com/api/?name=<?php echo urlencode($post['user_name']); ?>&background=E69B97&color=fff" class="pfp" alt="<?php echo escape($post['user_name']); ?>">
+									<div>
+										<strong><?php echo escape($post['user_name']); ?></strong>
+										<p class="post-date"><?php echo escape($post['post_date']); ?></p>
+									</div>
+								</div>
+
+								<div class="avg-rating">
+									<?php echo $ratingSummary['avg_rating'] !== null
+										? escape(number_format($ratingSummary['avg_rating'], 1))
+										: '0'; ?>/5
+								</div>
+							</div>
+						</div>
+					</section>
+				<?php } ?>
 			<?php } ?>
 
-			<section class="comments-section">
-				<h2>Comments and Individual Ratings</h2>
+			<section class="comment-form-wrap">
+				<h2>Add Your Comment</h2>
+				<?php if ($formMessage !== '') { ?>
+					<p class="form-message"><?php echo escape($formMessage); ?></p>
+				<?php } ?>
+				<form method="POST" action="detail.php<?php echo $pageType === 'post' ? '?post_id=' . (int) $postId : '?plant_id=' . (int) $plantId; ?><?php echo $currentPageTypeParam === 'community' ? '&type=community' : ''; ?>" class="comment-form">
+					<input type="hidden" name="add_comment" value="1">
+					<input type="hidden" name="target_type" value="<?php echo escape($pageType); ?>">
+					<input type="hidden" name="target_id" value="<?php echo escape($pageType === 'post' ? $postId : $plantId); ?>">
+					<input type="hidden" name="return_type" value="<?php echo escape($currentPageTypeParam); ?>">
+
+					<label for="comment_user">Username</label>
+					<input id="comment_user" name="comment_user" type="text" maxlength="50" required>
+
+					<label for="comment_text">Comment</label>
+					<textarea id="comment_text" name="comment_text" rows="4" maxlength="255" required></textarea>
+
+					<label>Rating</label>
+					<div class="rating-input rating-picker" data-target="#comment_rating">
+						<button type="button" data-value="1" aria-label="Rate 1">☆</button>
+						<button type="button" data-value="2" aria-label="Rate 2">☆</button>
+						<button type="button" data-value="3" aria-label="Rate 3">☆</button>
+						<button type="button" data-value="4" aria-label="Rate 4">☆</button>
+						<button type="button" data-value="5" aria-label="Rate 5">☆</button>
+					</div>
+					<input type="hidden" id="comment_rating" name="rating" value="0" required>
+
+					<button type="submit" class="comment-submit-btn">Post Comment</button>
+				</form>
+			</section>
+
+			<section class="comments-modern">
+				<h2>Community Thoughts</h2>
+
 				<?php if (!empty($comments)) { ?>
 					<?php foreach ($comments as $comment) { ?>
-						<article class="comment-card">
-							<div class="comment-top-row">
-								<strong><?php echo escape($comment['user_name']); ?></strong>
-								<span><?php echo escape($comment['comment_date']); ?></span>
+						<div class="comment-modern">
+
+							<img src="https://ui-avatars.com/api/?name=<?php echo urlencode($comment['user_name']); ?>&background=E69B97&color=fff" class="pfp" alt="<?php echo escape($comment['user_name']); ?>">
+
+							<div class="comment-body">
+								<div class="comment-top">
+									<strong><?php echo escape($comment['user_name']); ?></strong>
+
+									<div class="stars">
+										<?php
+											$rating = (int)$comment['rating'];
+											for ($i=1; $i<=5; $i++) {
+												echo $i <= $rating ? '★' : '☆';
+											}
+										?>
+									</div>
+								</div>
+
+								<div class="comment-date">
+									<?php echo escape($comment['comment_date']); ?>
+								</div>
+
+								<p><?php echo escape($comment['comment_text']); ?></p>
 							</div>
-							<p><?php echo escape($comment['comment_text']); ?></p>
-							<p class="individual-rating">Rating: <?php echo $comment['rating'] !== null ? escape($comment['rating']) . '/5' : 'Not rated'; ?></p>
-						</article>
+
+						</div>
 					<?php } ?>
 				<?php } else { ?>
-					<div class="empty-state">No comments yet for this <?php echo $pageType === 'post' ? 'post' : 'plant'; ?>.</div>
+					<div class="empty-state-comment">No comments yet for this <?php echo $pageType === 'post' ? 'post' : 'plant'; ?>.</div>
 				<?php } ?>
 			</section>
 
 			<?php
-			$current_page = isset($_GET['type']) ? $_GET['type'] : '';
+			$current_page = $currentPageTypeParam;
 			
 			if($current_page == 'community') {?>
 				<section class="post-controls">
@@ -361,41 +535,45 @@ if ($plantId > 0) {
     </div>
 	
 	<script>
-        const editBtn = document.querySelector('.edit_btn');
-        const editModalOverlay = document.getElementById('editModalOverlay');
-        const cancelPostBtn = document.getElementById('cancel-post');
+		const editBtn = document.querySelector('.edit_btn');
+		const editModalOverlay = document.getElementById('editModalOverlay');
+		const cancelPostBtn = document.getElementById('cancel-post');
 
 		const fileInput = document.getElementById('post_img');
 		const fileLabel = document.querySelector('.post_img');
 
 		const remove = document.getElementById('remove_img');
 
-        editBtn.addEventListener('click', () => {
-            editModalOverlay.classList.add('open');
-        });
+		editBtn?.addEventListener('click', () => {
+			editModalOverlay?.classList.add('open');
+		});
 
-        cancelPostBtn.addEventListener('click', () => {
-            editModalOverlay.classList.remove('open');
-        });
+		cancelPostBtn?.addEventListener('click', () => {
+			editModalOverlay?.classList.remove('open');
+		});
 
-		fileInput.addEventListener('change', function() {
-			if(this.files && this.files.length > 0){
+		fileInput?.addEventListener('change', function() {
+			if (this.files && this.files.length > 0 && fileLabel) {
 				fileLabel.innerHTML = '<i class="fa fa-check"></i>' + this.files[0].name;
-				fileLabel.style.color = "#4CAF50";
+				fileLabel.style.color = getComputedStyle(document.documentElement).getPropertyValue('--green').trim();
 			}
 		});
 
-		remove.addEventListener('change', function(){
-			if(this.checked){
+		remove?.addEventListener('change', function() {
+			if (!fileInput || !fileLabel) {
+				return;
+			}
+
+			if (this.checked) {
 				fileInput.value = '';
-				fileLabel.style.pointerEvents = "none";
+				fileLabel.style.pointerEvents = 'none';
 				fileLabel.style.opacity = '0.5';
 				fileLabel.innerHTML = '<i class="fa fa-trash"></i>Image will be removed!';
-				fileLabel.style.color = "#e74c3c"
+				fileLabel.style.color = getComputedStyle(document.documentElement).getPropertyValue('--berry').trim();
 			} else {
 				fileLabel.innerHTML = '<i class="fa fa-cloud-upload"></i>Update Image:';
-				fileLabel.style.color = ""
-				fileLabel.style.pointerEvents = "auto";
+				fileLabel.style.color = '';
+				fileLabel.style.pointerEvents = 'auto';
 				fileLabel.style.opacity = '1';
 			}
 		});

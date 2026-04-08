@@ -123,7 +123,7 @@ function resolvePostImage($fileName)
         <div class="header">
             <div class="header-top">
                 <div class="logo" style="display: flex; align-items: center;">
-                    <img src="images/favicon.png" alt="Blossom" style="width: 30px; height: 30px; margin-right: 5px;">Blossom
+                    <img src="images/favicon.png" alt="Blossom">Blossom
                 </div>
                 <div class="tabs">
                     <a href="index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">Plants</a>
@@ -144,23 +144,21 @@ function resolvePostImage($fileName)
         </div>
 
         <!-- GRID -->
-        <div class="grid">
+        <div class="masonry-grid">
             <?php if (mysqli_num_rows($result) > 0) { ?>
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
                     <a class="card-link" href="detail.php?post_id=<?php echo (int)$row['post_id']; ?>&type=community">
-                        <div class="community-container">
-                            <div class="card">
-                                <?php if (!empty($row['post_img'])): ?>
-                                    <img src="<?php echo escape(resolvePostImage($row['post_img'])); ?>"
-                                        alt="<?php echo escape($row['title']); ?>">
-                                <?php endif; ?>
+                        <div class="card">
+                            <?php if (!empty($row['post_img'])): ?>
+                                <img src="<?php echo escape(resolvePostImage($row['post_img'])); ?>"
+                                    alt="<?php echo escape($row['title']); ?>">
+                            <?php endif; ?>
 
-                                <div class="card-content">
-                                    <h3><?php echo escape($row['title']); ?></h3>
-                                    <small><?php echo escape($row['user_name']); ?></small>
-                                    <p><?php echo escape($row['body']); ?></p>
-                                    <div class="info">🗓️ Posted on: <?php echo escape($row['post_date']); ?></div>
-                                </div>
+                            <div class="card-content">
+                                <h3><?php echo escape($row['title']); ?></h3>
+                                <small><?php echo escape($row['user_name']); ?></small>
+                                <p><?php echo escape($row['body']); ?></p>
+                                <div class="info">🗓️ Posted on: <?php echo escape($row['post_date']); ?></div>
                             </div>
                         </div>
                     </a>
@@ -218,7 +216,7 @@ function resolvePostImage($fileName)
         fileInput.addEventListener('change', function() {
 			if(this.files && this.files.length > 0){
 				fileLabel.innerHTML = '<i class="fa fa-check"></i>' + this.files[0].name;
-				fileLabel.style.color = "#4CAF50";
+				fileLabel.style.color = getComputedStyle(document.documentElement).getPropertyValue('--green').trim();
 			}
 		});
 
@@ -288,6 +286,23 @@ function resolvePostImage($fileName)
                 filterForm.addEventListener('submit', saveOpenGroups);
             }
         });
+
+        function resizeMasonryItems() {
+            var grid = document.querySelector('.masonry-grid');
+            if (!grid) return;
+            var rowHeight = parseInt(getComputedStyle(grid).gridAutoRows);
+            var rowGap = parseInt(getComputedStyle(grid).rowGap);
+            grid.querySelectorAll('.card-link').forEach(function(item) {
+                item.style.gridRowEnd = '';
+                var card = item.querySelector('.card');
+                var cardHeight = card.getBoundingClientRect().height;
+                var rowSpan = Math.ceil((cardHeight + rowGap) / (rowHeight + rowGap));
+                item.style.gridRowEnd = 'span ' + rowSpan;
+            });
+        }
+
+        window.addEventListener('load', resizeMasonryItems);
+        window.addEventListener('resize', resizeMasonryItems);
     </script>
 </body>
 </html>
