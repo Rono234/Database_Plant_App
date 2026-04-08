@@ -585,6 +585,7 @@ body.detail-page {
   border-radius: 12px;
   padding: 10px 12px;
   font-family: inherit;
+  resize: vertical;
 }
 
 .rating-picker {
