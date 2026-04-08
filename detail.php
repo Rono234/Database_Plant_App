@@ -411,36 +411,9 @@ if ($plantId > 0) {
 				<?php } ?>
 			<?php } ?>
 
-			<section class="comment-form-wrap">
-				<h2>Add Your Comment</h2>
-				<?php if ($formMessage !== '') { ?>
-					<p class="form-message"><?php echo escape($formMessage); ?></p>
-				<?php } ?>
-				<form method="POST" action="detail.php<?php echo $pageType === 'post' ? '?post_id=' . (int) $postId : '?plant_id=' . (int) $plantId; ?><?php echo $currentPageTypeParam === 'community' ? '&type=community' : ''; ?>" class="comment-form">
-					<input type="hidden" name="add_comment" value="1">
-					<input type="hidden" name="target_type" value="<?php echo escape($pageType); ?>">
-					<input type="hidden" name="target_id" value="<?php echo escape($pageType === 'post' ? $postId : $plantId); ?>">
-					<input type="hidden" name="return_type" value="<?php echo escape($currentPageTypeParam); ?>">
+			
 
-					<label for="comment_user">Username</label>
-					<input id="comment_user" name="comment_user" type="text" maxlength="50" required>
-
-					<label for="comment_text">Comment</label>
-					<textarea id="comment_text" name="comment_text" rows="4" maxlength="255" required></textarea>
-
-					<label>Rating</label>
-					<div class="rating-input rating-picker" data-target="#comment_rating">
-						<button type="button" data-value="1" aria-label="Rate 1">☆</button>
-						<button type="button" data-value="2" aria-label="Rate 2">☆</button>
-						<button type="button" data-value="3" aria-label="Rate 3">☆</button>
-						<button type="button" data-value="4" aria-label="Rate 4">☆</button>
-						<button type="button" data-value="5" aria-label="Rate 5">☆</button>
-					</div>
-					<input type="hidden" id="comment_rating" name="rating" value="0" required>
-
-					<button type="submit" class="comment-submit-btn">Post Comment</button>
-				</form>
-			</section>
+			
 
 			<section class="comments-modern">
 				<h2>Community Thoughts</h2>
@@ -477,6 +450,37 @@ if ($plantId > 0) {
 				<?php } else { ?>
 					<div class="empty-state-comment">No comments yet for this <?php echo $pageType === 'post' ? 'post' : 'plant'; ?>.</div>
 				<?php } ?>
+			</section>
+
+			<section class="comment-form-wrap">
+				<h2>Add Your Comment</h2>
+				<?php if ($formMessage !== '') { ?>
+					<p class="form-message"><?php echo escape($formMessage); ?></p>
+				<?php } ?>
+				<form method="POST" action="detail.php<?php echo $pageType === 'post' ? '?post_id=' . (int) $postId : '?plant_id=' . (int) $plantId; ?><?php echo $currentPageTypeParam === 'community' ? '&type=community' : ''; ?>" class="comment-form">
+					<input type="hidden" name="add_comment" value="1">
+					<input type="hidden" name="target_type" value="<?php echo escape($pageType); ?>">
+					<input type="hidden" name="target_id" value="<?php echo escape($pageType === 'post' ? $postId : $plantId); ?>">
+					<input type="hidden" name="return_type" value="<?php echo escape($currentPageTypeParam); ?>">
+
+					<label for="comment_user">Username</label>
+					<input id="comment_user" name="comment_user" type="text" maxlength="50" required>
+
+					<label for="comment_text">Comment</label>
+					<textarea id="comment_text" name="comment_text" rows="4" maxlength="255" required></textarea>
+
+					<label>Rating</label>
+					<div class="rating-input rating-picker" data-target="#comment_rating">
+						<button type="button" data-value="1" aria-label="Rate 1">☆</button>
+						<button type="button" data-value="2" aria-label="Rate 2">☆</button>
+						<button type="button" data-value="3" aria-label="Rate 3">☆</button>
+						<button type="button" data-value="4" aria-label="Rate 4">☆</button>
+						<button type="button" data-value="5" aria-label="Rate 5">☆</button>
+					</div>
+					<input type="hidden" id="comment_rating" name="rating" value="0" required>
+
+					<button type="submit" class="comment-submit-btn">Post Comment</button>
+				</form>
 			</section>
 
 			<?php
