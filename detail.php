@@ -492,7 +492,7 @@ if ($plantId > 0) {
 
 					<div class="control-item">
 						<form action="delete.php" method="POST" onsubmit="return confirm('Are you sure you want to delete the post?');">
-							<input type="hidden" name="post_id" value="<?php echo $post_id;?>">
+						<input type="hidden" name="post_id" value="<?php echo $postId;?>">
 							<button type="submit" name="delete_btn" class="delete_btn">Delete Post</button>
 						</form>
 					</div>
@@ -505,7 +505,7 @@ if ($plantId > 0) {
         <div class="modal-content">
             <h2>Update Your Post Below</h2>
             <form id="post-form" method="POST" action="edit.php" enctype="multipart/form-data">
-				<input type="hidden" name="post_id" value="<?php echo $post_id;?>">
+				<input type="hidden" name="post_id" value="<?php echo $postId;?>">
 
                 <label for="title">Update Title:</label>
                 <input type="text" name="title" value="<?php echo $post['title'];?>" required>
