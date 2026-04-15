@@ -103,7 +103,8 @@ CREATE TABLE comments
 	CONSTRAINT comments_plants_fk
 		FOREIGN KEY (plant_id) REFERENCES plants (plant_id),
 	CONSTRAINT comments_posts_fk
-		FOREIGN KEY (post_id) REFERENCES posts (post_id),
+		FOREIGN KEY (post_id) REFERENCES posts(post_id)
+	ON DELETE CASCADE,
 	CONSTRAINT comments_users_fk
 		FOREIGN KEY (user_id) REFERENCES users (user_id)
 );
